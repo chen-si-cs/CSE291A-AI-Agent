@@ -61,8 +61,13 @@ def main():
 
     pairs = build_prompt_target_pairs(args.data)
     print(f"Loaded {len(pairs)} (prompt, action) pairs")
+    if not pairs:
+        print("No (prompt, action) pairs found. Check trajectory JSON has 'steps' with 'observation' and 'action'.")
+        raise SystemExit(1)
 
     tokenizer = AutoTokenizer.from_pretrained(args.model_name, trust_remote_code=True)
+    if tokenizer.pad_token_id is None:
+        tokenizer.pad_token_id = tokenizer.eos_token_id
     model = AutoModelForCausalLM.from_pretrained(
         args.model_name,
         torch_dtype=torch.bfloat16 if torch.cuda.is_available() else torch.float32,

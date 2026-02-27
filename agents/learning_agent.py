@@ -70,6 +70,8 @@ class LearningAgent(BaseAgent):
 
     def load_offline_data(self, path: str) -> int:
         """Load trajectories from JSON into lookup table (fallback). Returns count loaded."""
+        if not path or not os.path.isfile(path):
+            return 0
         with open(path) as f:
             trajectories = json.load(f)
         return self.train_offline(trajectories)
@@ -79,8 +81,8 @@ class LearningAgent(BaseAgent):
         n = 0
         for traj in trajectories:
             pid = traj.get("puzzle_id")
-            for s in traj.get("steps", []):
-                step_idx = s.get("step", n)
+            for i, s in enumerate(traj.get("steps", [])):
+                step_idx = s.get("step", i)
                 action = s.get("action")
                 if pid and action is not None:
                     self._lookup[(pid, step_idx)] = action
@@ -127,8 +129,8 @@ class LearningAgent(BaseAgent):
             truncation=True,
             max_length=1024,
         )
-        if torch.cuda.is_available():
-            inputs = {k: v.cuda() for k, v in inputs.items()}
+        device = next(self._model.parameters()).device
+        inputs = {k: v.to(device) for k, v in inputs.items()}
         with torch.no_grad():
             out = self._model.generate(
                 **inputs,
@@ -187,6 +189,8 @@ class LearningAgent(BaseAgent):
 
     def load_lookup(self, path: str) -> int:
         """Load lookup table from JSON. Returns count."""
+        if not path or not os.path.isfile(path):
+            return 0
         with open(path) as f:
             out = json.load(f)
         n = 0
