@@ -332,14 +332,48 @@ arc_dsl_sim/
 │   ├── base_agent.py   # Abstract agent interface
 │   ├── llm_agent.py    # LLM agent (calls OpenAI/Anthropic API)
 │   ├── random_agent.py # Random baseline
-│   └── rl_agent.py     # RL agent stub (action embedding + policy network)
+│   ├── learning_agent.py # BC agent (Qwen3-1.7B trained on offline data)
+│   └── rl_agent.py      # RL agent (policy network + REINFORCE)
+├── docs/
+│   └── LEARNING_AGENT_RECOMMENDATION.md # Offline vs online recommendation
+├── solver_trajectory.py  # Extract action sequences from solvers.py
 ├── data/
 │   ├── train/          # ARC training puzzles (JSON)
 │   └── evaluation/     # ARC evaluation puzzles (JSON)
 └── scripts/
     ├── play.py         # Human interactive mode
     ├── evaluate.py     # Run agent on puzzle set, collect metrics
-    └── demo.py         # Run a single puzzle with verbose output
+    ├── demo.py         # Run a single puzzle with verbose output
+    ├── build_offline_data.py # Build offline trajectories from solvers
+    ├── train_bc_model.py     # Train Qwen3-1.7B for BC on trajectories
+    └── train_rl_agent.py     # Train RL agent with REINFORCE
+```
+
+### Learning Agent (BC with Qwen3-1.7B)
+
+The learning agent **trains a small LM (Qwen3-1.7B)** on offline trajectories (behavioral cloning), then uses the trained model at inference to generate the next command. If no model is loaded or the model output fails to parse, it falls back to a lookup table (from the same trajectory data) or the random agent.
+
+```bash
+# 1. Build offline trajectories from solvers
+python -m scripts.build_offline_data --data data/train data/evaluation --out data/offline_trajectories.json
+
+# 2. Train Qwen3-1.7B on the trajectories (requires: pip install torch transformers datasets)
+python -m scripts.train_bc_model --data data/offline_trajectories.json --save_dir checkpoints/bc_qwen --model_name Qwen/Qwen3-1.7B --epochs 2
+
+# 3. Evaluate with the trained model (and optional offline_data for fallback)
+python -m scripts.evaluate --agent learning --model-path checkpoints/bc_qwen --offline-data data/offline_trajectories.json --data data/train --n 50
+```
+
+### RL Agent (REINFORCE)
+
+The RL agent uses a small policy network and is **trained with REINFORCE** on env rewards. Discrete action space (submit + a subset of unary DSL functions). Train with `scripts/train_rl_agent.py`, then evaluate with `--agent rl --rl-checkpoint <path>`.
+
+```bash
+# 1. Train RL agent (REINFORCE)
+python -m scripts.train_rl_agent --data data/train --save_dir checkpoints/rl_agent --episodes 500
+
+# 2. Evaluate
+python -m scripts.evaluate --agent rl --rl-checkpoint checkpoints/rl_agent/ckpt_final.pt --data data/train --n 50
 ```
 
 ---
