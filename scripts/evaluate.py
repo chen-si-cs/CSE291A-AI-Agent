@@ -18,6 +18,8 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from env import ArcEnv
 from agents.random_agent import RandomAgent
+from agents.learning_agent import LearningAgent
+from agents.rl_agent import RLAgent
 
 
 def run_episode(env: ArcEnv, agent, puzzle_id=None, verbose=False):
@@ -61,25 +63,42 @@ def run_episode(env: ArcEnv, agent, puzzle_id=None, verbose=False):
     }
 
 
-def make_agent(agent_name: str):
+def make_agent(agent_name: str, **kwargs):
     """Factory for agents."""
     if agent_name == "random":
-        return RandomAgent(max_steps_before_submit=8)
+        return RandomAgent(max_steps_before_submit=kwargs.get("max_steps", 8))
+    elif agent_name == "learning":
+        return LearningAgent(
+            model_path=kwargs.get("model_path"),
+            data_path=kwargs.get("offline_data"),
+            fallback_max_steps_before_submit=kwargs.get("max_steps", 15),
+        )
+    elif agent_name == "rl":
+        return RLAgent(
+            max_steps=kwargs.get("max_steps", 20),
+            checkpoint_path=kwargs.get("rl_checkpoint"),
+        )
     else:
-        raise ValueError(f"Unknown agent: {agent_name}. Available: random")
+        raise ValueError(f"Unknown agent: {agent_name}. Available: random, learning, rl")
 
 
 def main():
     parser = argparse.ArgumentParser(description="Evaluate an agent on ARC puzzles")
     parser.add_argument("--agent", "-a", type=str, default="random",
-                        help="Agent name: random")
+                        help="Agent name: random, learning, rl")
+    parser.add_argument("--model-path", type=str, default=None,
+                        help="Path to trained BC model dir (for learning agent, e.g. checkpoints/bc_qwen)")
+    parser.add_argument("--offline-data", type=str, default=None,
+                        help="Path to offline_trajectories.json (for learning agent fallback)")
+    parser.add_argument("--rl-checkpoint", type=str, default=None,
+                        help="Path to RL checkpoint .pt file (for rl agent)")
     parser.add_argument("--data", "-d", type=str, nargs="+",
                         default=["data/train", "data/evaluation"])
     parser.add_argument("--puzzle", "-p", type=str, default=None,
                         help="Run on a specific puzzle only")
     parser.add_argument("--n", type=int, default=None,
                         help="Number of puzzles to evaluate (default: all)")
-    parser.add_argument("--budget", "-b", type=int, default=20)
+    parser.add_argument("--budget", "-b", type=int, default=50)
     parser.add_argument("--episodes", "-e", type=int, default=1,
                         help="Episodes per puzzle (for stochastic agents)")
     parser.add_argument("--verbose", "-v", action="store_true")
@@ -88,7 +107,13 @@ def main():
     args = parser.parse_args()
 
     env = ArcEnv(data_dirs=args.data, max_steps=args.budget)
-    agent = make_agent(args.agent)
+    agent = make_agent(
+        args.agent,
+        max_steps=args.budget,
+        model_path=args.model_path,
+        offline_data=args.offline_data,
+        rl_checkpoint=args.rl_checkpoint,
+    )
 
     if len(env.puzzle_db) == 0:
         print("No puzzles found!")

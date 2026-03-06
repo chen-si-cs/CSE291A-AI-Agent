@@ -162,11 +162,11 @@ def _parse_single_arg(s: str) -> Any:
         pass
 
     # Try tuple literal like (1, 2) or (-1, 0)
-    if s.startswith("(") and s.endswith(")"):
+    if (s.startswith("(") and s.endswith(")")) or (s.startswith("[") and s.endswith("]")):
         try:
             val = ast.literal_eval(s)
-            if isinstance(val, tuple):
-                return val
+            if isinstance(val, (tuple, list)):
+                return tuple(val)
         except (ValueError, SyntaxError):
             pass
 
@@ -186,6 +186,50 @@ def _parse_submit(text: str) -> Dict[str, Any]:
     if not text:
         return {"type": "error", "message": "Submit requires a variable name"}
     return {"type": "submit", "answer": text.split()[0]}
+
+
+def action_to_command(action: Dict[str, Any]) -> str:
+    """
+    Convert an action dict to a single-line command string (inverse of parse_command).
+    Used for behavioral cloning targets so the model outputs parseable text.
+    """
+    t = action.get("type", "")
+    if t == "execute":
+        func = action.get("function", "")
+        args = action.get("args", [])
+        parts = []
+        for a in args:
+            if isinstance(a, bool):
+                parts.append("True" if a else "False")
+            elif isinstance(a, tuple):
+                parts.append(str(a))
+            else:
+                parts.append(str(a))
+        args_str = ", ".join(parts)
+        store = action.get("store_as", "")
+        if store:
+            return f"execute {func}({args_str}) -> {store}"
+        return f"execute {func}({args_str})"
+    if t == "inspect":
+        return f"inspect {action.get('target', '')}"
+    if t == "submit":
+        return f"submit {action.get('answer', '')}"
+    if t == "undo":
+        return "undo"
+    if t == "reset_inventory":
+        return "reset"
+    if t == "list_functions":
+        f = action.get("filter", "").strip()
+        return f"list_functions {f}" if f else "list_functions"
+    if t == "train_inspect":
+        idx = action.get("index", 0)
+        w = action.get("which", "both")
+        return f"train {idx} {w}"
+    if t == "help":
+        return "help"
+    if t == "inventory":
+        return "inventory"
+    return ""
 
 
 def _parse_train_inspect(text: str) -> Dict[str, Any]:
