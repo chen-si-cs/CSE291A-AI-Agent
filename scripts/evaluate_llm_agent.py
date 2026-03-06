@@ -22,7 +22,12 @@ from agents.llm_agent import LLMAgent
 
 
 API_URL = "https://tritonai-api.ucsd.edu/v1/chat/completions"
-API_KEY = "sk-XFgODW0QDJGPbzYcu5tkFw"
+API_KEY = os.environ.get("OPENAI_API_KEY")
+
+if not API_KEY:
+    print("ERROR: OPENAI_API_KEY environment variable not set.", file=sys.stderr)
+    print("Please set it before running this script.", file=sys.stderr)
+    sys.exit(1)
 
 AVAILABLE_MODELS = [
     "api-llama-4-scout",
@@ -78,7 +83,7 @@ def run_episode(env: ArcEnv, agent: LLMAgent, puzzle_id: str, verbose: bool = Fa
             if verbose:
                 print(f"  [ERROR] agent.act failed: {e}")
             consecutive_errors += 1
-            if consecutive_errors >= 3:
+            if consecutive_errors >= 5:
                 break
             continue
 
@@ -86,10 +91,12 @@ def run_episode(env: ArcEnv, agent: LLMAgent, puzzle_id: str, verbose: bool = Fa
             consecutive_errors += 1
             if verbose:
                 print(f"  [PARSE ERROR] {action.get('message', '')}")
-            if consecutive_errors >= 3:
+            if consecutive_errors >= 5:
                 break
             # Feed error back to the LLM
-            obs["last_action_result"] = {"error": f"Could not parse command. Respond with ONLY a command like: execute objects(I, True, False, False) -> x1"}
+            obs["last_action_result"] = {
+                "error": f"Parse Error: Could not parse command. Please ensure your LAST LINE is a valid command like: execute objects(I, True, False, False) -> x1"
+            }
             continue
 
         consecutive_errors = 0
@@ -166,12 +173,14 @@ def main():
 
         if solved:
             solved_count += 1
-        results.append({"puzzle_id": pid, "solved": solved, "reward": reward, "steps": steps})
+        acc = info.get("accuracy", 0.0) if info else 0.0
+        results.append({"puzzle_id": pid, "solved": solved, "reward": reward, "steps": steps, "accuracy": acc})
 
     # Summary
     n = len(results)
     avg_reward = sum(r["reward"] for r in results) / n if n else 0
     avg_steps = sum(r["steps"] for r in results) / n if n else 0
+    avg_acc = sum(r.get("accuracy", 0) for r in results) / n if n else 0
 
     print(f"\n{'='*55}")
     print(f"  MODEL: {args.model}")
@@ -179,6 +188,7 @@ def main():
     print(f"{'='*55}")
     print(f"  Total episodes:     {n}")
     print(f"  Solved:             {solved_count}/{n} ({100*solved_count/n:.1f}%)")
+    print(f"  Avg accuracy:       {100*avg_acc:.1f}%")
     print(f"  Avg reward:         {avg_reward:.3f}")
     print(f"  Avg steps:          {avg_steps:.1f}")
     print(f"  Total time:         {total_time:.1f}s")

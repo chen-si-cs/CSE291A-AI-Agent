@@ -162,11 +162,11 @@ def _parse_single_arg(s: str) -> Any:
         pass
 
     # Try tuple literal like (1, 2) or (-1, 0)
-    if s.startswith("(") and s.endswith(")"):
+    if (s.startswith("(") and s.endswith(")")) or (s.startswith("[") and s.endswith("]")):
         try:
             val = ast.literal_eval(s)
-            if isinstance(val, tuple):
-                return val
+            if isinstance(val, (tuple, list)):
+                return tuple(val)
         except (ValueError, SyntaxError):
             pass
 

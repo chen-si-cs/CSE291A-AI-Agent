@@ -145,14 +145,15 @@ class LLMAgent(BaseAgent):
         lines.append("Your inventory starts with variable 'I' = test input grid.")
         lines.append("Use DSL commands to transform it into the expected output.")
         lines.append("")
-        lines.append("IMPORTANT: Respond with ONLY ONE command, nothing else. No explanation, no reasoning.")
-        lines.append("Example commands:")
-        lines.append("  execute objects(I, True, False, False) -> x1")
-        lines.append("  execute colorfilter(x1, 0) -> x2")
-        lines.append("  inspect x1")
-        lines.append("  submit O")
+        lines.append("IMPORTANT Instructions:")
+        lines.append("1. You may reason about the puzzle step-by-step and think out loud first.")
+        lines.append("2. Feel free to use 'inspect varname' to look at intermediate grids.")
+        lines.append("3. Your VERY LAST LINE must be EXACTLY ONE valid DSL command.")
         lines.append("")
-        lines.append("Your first command:")
+        lines.append("Example final line of your response:")
+        lines.append("execute objects(I, True, False, False) -> x1")
+        lines.append("")
+        lines.append("Now, provide your reasoning and your first command:")
 
         return "\n".join(lines)
 
@@ -161,23 +162,44 @@ class LLMAgent(BaseAgent):
         if text is None:
             return {"type": "error", "message": "LLM returned empty response"}
 
-        # Look for a line that starts with a command keyword
-        for line in text.strip().split("\n"):
+        # Scan the response from bottom to top (reversed) to find the command.
+        # This allows the model to reason first, then conclude with a command.
+        lines = text.strip().split("\n")
+        command_keywords = ("execute ", "inspect ", "submit ", "list_functions ")
+        
+        for line in reversed(lines):
             line = line.strip()
-            # Skip empty lines, comments, markdown
+            # Skip empty lines, comments, markdown blocks
             if not line or line.startswith("#") or line.startswith("```"):
                 continue
-            # Remove leading markers like ">" or "-" or "*"
+            # Remove leading markers
             if line.startswith(">") or line.startswith("-") or line.startswith("*"):
                 line = line[1:].strip()
+                
+            # Remove trailing tags like <|im_end|> or <|message|>
+            import re
+            line = re.sub(r"<\|.*?\|>$", "", line).strip()
+            
+            # If line seems like a valid command, try parsing it
+            if line.startswith(command_keywords):
+                action = parse_command(line)
+                if action["type"] != "error":
+                    return action
 
+        # Fallback: if no keyword matched, just try parsing the literal last non-empty line
+        for line in reversed(lines):
+            line = line.strip()
+            if not line or line.startswith("#") or line.startswith("```"):
+                continue
+            if line.startswith(">") or line.startswith("-") or line.startswith("*"):
+                line = line[1:].strip()
+            line = re.sub(r"<\|.*?\|>$", "", line).strip()
             action = parse_command(line)
             if action["type"] != "error":
                 return action
-
-        # Fallback: try the whole text
-        last_line = text.strip().split("\n")[-1].strip()
-        return parse_command(last_line)
+            return action  # return the error from the last non-empty line
+            
+        return {"type": "error", "message": "Could not extract command from response"}
 
 
 # ── Default system prompt ───────────────────────────────────────────────
@@ -188,7 +210,7 @@ You are an expert at solving ARC-AGI puzzles using a Domain-Specific Language (D
 You are given train input/output pairs and a test input. Your goal is to figure out
 the transformation pattern and apply it to the test input using DSL operations.
 
-## Commands (respond with EXACTLY ONE per turn, no extra text)
+## Commands (respond with EXACTLY ONE per turn at the VERY END of your response)
 
   execute FUNC(arg1, arg2, ...) -> varname
   inspect varname
