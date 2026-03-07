@@ -66,12 +66,15 @@ def run_eval_subprocess(model_dir, offline_data, eval_data, eval_n, eval_budget,
                         temperature=None, split="train"):
     """Shell out to evaluate.py and return parsed metrics."""
     eval_output = os.path.join(model_dir, f"eval_results_t{temperature}.json")
+    # eval_data can be a string or list of dirs
+    if isinstance(eval_data, str):
+        eval_data = [eval_data]
     cmd = [
         sys.executable, "-m", "scripts.evaluate",
         "--agent", "learning",
         "--model-path", model_dir,
         "--offline-data", offline_data,
-        "--data", eval_data,
+        "--data", *eval_data,
         "--n", str(eval_n),
         "--budget", str(eval_budget),
         "--split", split,
@@ -395,8 +398,8 @@ def main():
                         help="Generation temperatures to search over")
 
     # Eval args
-    parser.add_argument("--eval_data", type=str, default="data/train",
-                        help="Data dir for evaluation puzzles")
+    parser.add_argument("--eval_data", type=str, nargs="+", default=["data/train"],
+                        help="Data dir(s) for evaluation puzzles")
     parser.add_argument("--eval_n", type=int, default=50,
                         help="Number of puzzles to evaluate per grid point")
     parser.add_argument("--eval_budget", type=int, default=30,
@@ -501,5 +504,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-    
