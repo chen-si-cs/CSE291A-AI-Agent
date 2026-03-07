@@ -45,7 +45,7 @@ def run_episode(env: ArcEnv, agent, puzzle_id=None, verbose=False):
         if done:
             agent.on_episode_end(total_reward, steps, info)
 
-    success = info.get("success", info.get("exact_match", False))
+    success = info.get("exact_match")
     accuracy = info.get("accuracy", 0.0)
 
     if verbose:

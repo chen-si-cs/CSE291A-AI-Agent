@@ -173,7 +173,7 @@ class LearningAgent(BaseAgent):
                 self.on_step_result(obs, reward, done, info)
                 if done:
                     self.on_episode_end(info.get("total_reward", 0), info.get("steps_taken", 0), info)
-                    if info.get("success"):
+                    if info.get("exact_match"):
                         solved += 1
                     break
         if verbose:

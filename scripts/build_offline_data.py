@@ -65,7 +65,7 @@ def build_trajectories(env: ArcEnv, solver_map: dict, max_per_puzzle: int = 1) -
             trajectories.append({
                 "puzzle_id": puzzle_id,
                 "steps": traj,
-                "success": info.get("success", False),
+                "success": info.get("exact_match", False),
             })
     return trajectories
 

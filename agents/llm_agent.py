@@ -99,7 +99,7 @@ class LLMAgent(BaseAgent):
 
     def on_episode_end(self, total_reward: float, steps: int, info: dict) -> None:
         if self.verbose:
-            status = "SOLVED" if info.get("success") else "FAILED"
+            status = "SOLVED" if info.get("exact_match") else "FAILED"
             print(f"[LLM Agent] Episode ended: {status}, "
                   f"reward={total_reward:.3f}, steps={steps}")
 

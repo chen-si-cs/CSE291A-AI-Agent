@@ -57,7 +57,7 @@ def main():
                     info.get("steps_taken", 0),
                     info,
                 )
-                if info.get("success"):
+                if info.get("exact_match", False):
                     solved_count += 1
                 break
 
