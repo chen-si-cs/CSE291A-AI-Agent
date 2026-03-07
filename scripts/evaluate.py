@@ -98,7 +98,7 @@ def main():
                         help="Run on a specific puzzle only")
     parser.add_argument("--n", type=int, default=None,
                         help="Number of puzzles to evaluate (default: all)")
-    parser.add_argument("--budget", "-b", type=int, default=20)
+    parser.add_argument("--budget", "-b", type=int, default=50)
     parser.add_argument("--episodes", "-e", type=int, default=1,
                         help="Episodes per puzzle (for stochastic agents)")
     parser.add_argument("--verbose", "-v", action="store_true")

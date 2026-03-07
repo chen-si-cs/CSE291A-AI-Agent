@@ -87,7 +87,8 @@ def main():
     parser = argparse.ArgumentParser(description="Build offline trajectories from solvers")
     parser.add_argument("--data", "-d", type=str, nargs="+", default=["data/train", "data/evaluation"])
     parser.add_argument("--out", "-o", type=str, default="data/offline_trajectories.json")
-    parser.add_argument("--max-steps", type=int, default=30)
+    parser.add_argument("--max-steps", type=int, default=200,
+                        help="Max DSL steps per puzzle (default 200; longest solver needs ~44)")
     args = parser.parse_args()
 
     env = ArcEnv(data_dirs=args.data, max_steps=args.max_steps)
