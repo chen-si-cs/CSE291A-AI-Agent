@@ -128,6 +128,8 @@ def main():
     parser.add_argument("--verbose", "-v", action="store_true")
     parser.add_argument("--puzzle", "-p", type=str, default=None,
                         help="Run on a specific puzzle ID")
+    parser.add_argument("--id-file", type=str, default=None,
+                        help="JSON file with list of puzzle IDs to evaluate")
     args = parser.parse_args()
 
     env = ArcEnv(data_dirs=args.data, max_steps=args.max_steps)
@@ -137,6 +139,14 @@ def main():
     # Select puzzles
     if args.puzzle:
         puzzle_ids = [args.puzzle]
+    elif args.id_file:
+        import json as _json
+        with open(args.id_file) as f:
+            puzzle_ids = [pid for pid in _json.load(f) if pid in set(env.puzzle_db.ids())]
+        if args.n and args.n < len(puzzle_ids):
+            import random
+            random.seed(42)
+            puzzle_ids = random.sample(puzzle_ids, args.n)
     else:
         import random
         all_ids = env.puzzle_db.ids()

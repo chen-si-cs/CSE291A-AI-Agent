@@ -96,6 +96,8 @@ def main():
                         default=["data/train", "data/evaluation"])
     parser.add_argument("--puzzle", "-p", type=str, default=None,
                         help="Run on a specific puzzle only")
+    parser.add_argument("--id-file", type=str, default=None,
+                        help="JSON file with list of puzzle IDs to evaluate")
     parser.add_argument("--n", type=int, default=None,
                         help="Number of puzzles to evaluate (default: all)")
     parser.add_argument("--budget", "-b", type=int, default=50)
@@ -122,6 +124,12 @@ def main():
     # Select puzzles
     if args.puzzle:
         puzzle_ids = [args.puzzle]
+    elif args.id_file:
+        import json as _json
+        with open(args.id_file) as f:
+            puzzle_ids = [pid for pid in _json.load(f) if pid in set(env.puzzle_db.ids())]
+        if args.n:
+            puzzle_ids = puzzle_ids[:args.n]
     else:
         puzzle_ids = env.puzzle_db.ids()
         if args.n:

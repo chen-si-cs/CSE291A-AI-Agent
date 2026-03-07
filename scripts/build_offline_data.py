@@ -89,10 +89,18 @@ def main():
     parser.add_argument("--out", "-o", type=str, default="data/offline_trajectories.json")
     parser.add_argument("--max-steps", type=int, default=200,
                         help="Max DSL steps per puzzle (default 200; longest solver needs ~44)")
+    parser.add_argument("--id-file", type=str, default=None,
+                        help="JSON file with list of puzzle IDs to include (default: all)")
     args = parser.parse_args()
 
     env = ArcEnv(data_dirs=args.data, max_steps=args.max_steps)
     solver_map = load_all_solvers()
+
+    # Filter to specific puzzle IDs if provided
+    if args.id_file:
+        with open(args.id_file) as f:
+            allowed_ids = set(json.load(f))
+        solver_map = {pid: fn for pid, fn in solver_map.items() if pid in allowed_ids}
 
     puzzle_ids_in_env = set(env.puzzle_db.ids())
     matched = [p for p in solver_map if p in puzzle_ids_in_env]
