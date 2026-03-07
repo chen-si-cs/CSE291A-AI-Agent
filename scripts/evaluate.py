@@ -20,6 +20,7 @@ from env import ArcEnv
 from agents.random_agent import RandomAgent
 from agents.learning_agent import LearningAgent
 from agents.rl_agent import RLAgent
+from puzzle_ids import TRAIN_IDS, TEST_IDS
 
 
 def run_episode(env: ArcEnv, agent, puzzle_id=None, verbose=False):
@@ -68,11 +69,14 @@ def make_agent(agent_name: str, **kwargs):
     if agent_name == "random":
         return RandomAgent(max_steps_before_submit=kwargs.get("max_steps", 8))
     elif agent_name == "learning":
-        return LearningAgent(
+        agent_kwargs = dict(
             model_path=kwargs.get("model_path"),
             data_path=kwargs.get("offline_data"),
             fallback_max_steps_before_submit=kwargs.get("max_steps", 15),
         )
+        if kwargs.get("temperature") is not None:
+            agent_kwargs["temperature"] = kwargs["temperature"]
+        return LearningAgent(**agent_kwargs)
     elif agent_name == "rl":
         return RLAgent(
             max_steps=kwargs.get("max_steps", 20),
@@ -98,12 +102,17 @@ def main():
                         help="Run on a specific puzzle only")
     parser.add_argument("--n", type=int, default=None,
                         help="Number of puzzles to evaluate (default: all)")
-    parser.add_argument("--budget", "-b", type=int, default=50)
+    parser.add_argument("--budget", "-b", type=int, default=30)
     parser.add_argument("--episodes", "-e", type=int, default=1,
                         help="Episodes per puzzle (for stochastic agents)")
     parser.add_argument("--verbose", "-v", action="store_true")
     parser.add_argument("--output", "-o", type=str, default=None,
                         help="Save results to JSON file")
+    parser.add_argument("--split", type=str, default="train",
+                        choices=["train", "test", "all"],
+                        help="Which puzzle split to evaluate (default: train)")
+    parser.add_argument("--temperature", type=float, default=None,
+                        help="Generation temperature (passed to learning agent)")
     args = parser.parse_args()
 
     env = ArcEnv(data_dirs=args.data, max_steps=args.budget)
@@ -113,17 +122,25 @@ def main():
         model_path=args.model_path,
         offline_data=args.offline_data,
         rl_checkpoint=args.rl_checkpoint,
+        temperature=args.temperature,
     )
 
     if len(env.puzzle_db) == 0:
         print("No puzzles found!")
         sys.exit(1)
 
-    # Select puzzles
+    # Select puzzles — restricted to hardcoded splits
     if args.puzzle:
         puzzle_ids = [args.puzzle]
     else:
-        puzzle_ids = env.puzzle_db.ids()
+        if args.split == "train":
+            allowed = TRAIN_IDS
+        elif args.split == "test":
+            allowed = TEST_IDS
+        else:
+            allowed = TRAIN_IDS + TEST_IDS
+        available = set(env.puzzle_db.ids())
+        puzzle_ids = [pid for pid in allowed if pid in available]
         if args.n:
             puzzle_ids = puzzle_ids[:args.n]
 

@@ -398,8 +398,9 @@ def main():
                         help="Generation temperatures to search over")
 
     # Eval args
-    parser.add_argument("--eval_data", type=str, nargs="+", default=["data/train"],
-                        help="Data dir(s) for evaluation puzzles")
+    parser.add_argument("--eval_data", type=str, nargs="+",
+                        default=["data/train", "data/evaluation"],
+                        help="Data dir(s) for evaluation puzzles (must include dirs for both splits)")
     parser.add_argument("--eval_n", type=int, default=50,
                         help="Number of puzzles to evaluate per grid point")
     parser.add_argument("--eval_budget", type=int, default=30,
