@@ -236,7 +236,7 @@ class ArcEnv:
                         step_number=self.steps_taken + 1,
                     )
                     return 0.0, {
-                        "success": True,
+                        "action_ok": True,
                         "stored": store_as,
                         "type": slot.type_label,
                         "preview": slot.type_label,
