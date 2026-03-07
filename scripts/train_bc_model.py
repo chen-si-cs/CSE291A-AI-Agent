@@ -1,16 +1,19 @@
 #!/usr/bin/env python3
 """
-Train BC model with grid search over model / inference parameters.
+Train BC model with LoRA and grid search over inference parameters.
 
-Instead of searching over learning-rate and batch-size, we fix those and
-search over parameters that affect the model's behaviour at inference time:
-  - max_length  (context window used during tokenization / training)
-  - temperature (passed to the evaluation agent for generation)
+Uses LoRA (Low-Rank Adaptation) instead of full fine-tuning:
+  - Only ~0.5-2% of parameters are trained → strong regularization
+  - Much less GPU memory needed
+  - Better generalization on small datasets (we have ~582 pairs)
 
-For every (max_length, temperature) combo the script:
-  1. Trains for N epochs (or reuses a checkpoint if max_length was already trained).
-  2. Evaluates with the given temperature.
-  3. Reports a comparison grid at the end.
+At save time, LoRA weights are merged into the base model so the saved
+checkpoint is a standard HuggingFace model — learning_agent.py needs no
+changes to load it.
+
+Grid search axes:
+  - max_length  (context window for tokenization / training)
+  - temperature (generation temperature at eval time)
 
 Usage:
   python -m scripts.train_bc_model \
@@ -18,10 +21,9 @@ Usage:
     --save_dir checkpoints/bc_grid \
     --model_name Qwen/Qwen3-1.7B \
     --epochs 10 \
-    --max_lengths 512 768 1024 \
+    --max_lengths 1024 1536 2048 \
     --temperatures 0.1 0.5 1.0 \
-    --eval_data data/train \
-    --eval_n 50
+    --lora_r 16 --lora_alpha 32
 """
 
 from __future__ import annotations
@@ -66,7 +68,6 @@ def run_eval_subprocess(model_dir, offline_data, eval_data, eval_n, eval_budget,
                         temperature=None, split="train"):
     """Shell out to evaluate.py and return parsed metrics."""
     eval_output = os.path.join(model_dir, f"eval_results_t{temperature}.json")
-    # eval_data can be a string or list of dirs
     if isinstance(eval_data, str):
         eval_data = [eval_data]
     cmd = [
@@ -110,7 +111,7 @@ def run_eval_subprocess(model_dir, offline_data, eval_data, eval_n, eval_budget,
 
 
 def make_eval_callback_class(
-    trainer_ref,
+    peft_model_ref,
     tokenizer,
     save_dir,
     offline_data,
@@ -118,9 +119,14 @@ def make_eval_callback_class(
     eval_n,
     eval_budget,
     epoch_metrics,
+    base_model_name,
     temperature=None,
 ):
-    """Build a TrainerCallback class that evals after each epoch."""
+    """Build a TrainerCallback class that evals after each epoch.
+
+    Strategy: at each epoch save a MERGED checkpoint using peft's reversible
+    merge_adapter()/unmerge_adapter(), so training continues uninterrupted.
+    """
     from transformers import TrainerCallback
 
     class EvalAfterEpochCallback(TrainerCallback):
@@ -132,8 +138,21 @@ def make_eval_callback_class(
             print(f"\n{'─'*50}")
             print(f"  Epoch {epoch} complete — saving & evaluating")
             print(f"{'─'*50}")
-            trainer_ref[0].save_model(epoch_dir)
-            tokenizer.save_pretrained(epoch_dir)
+
+            peft_model = peft_model_ref[0]
+
+            # Save merged checkpoint using reversible merge
+            peft_model.eval()
+            try:
+                # merge_adapter() is reversible (unlike merge_and_unload)
+                peft_model.merge_adapter()
+                # Save the underlying base model with merged weights
+                peft_model.base_model.model.save_pretrained(epoch_dir)
+                tokenizer.save_pretrained(epoch_dir)
+            finally:
+                # Always unmerge so training can continue
+                peft_model.unmerge_adapter()
+                peft_model.train()
 
             train_loss = None
             for entry in reversed(state.log_history):
@@ -187,7 +206,7 @@ def plot_learning_curves(epoch_metrics, save_dir):
     loss     = [m.get("train_loss") for m in valid]
 
     fig, axes = plt.subplots(2, 2, figsize=(12, 9))
-    fig.suptitle("BC Training — Per-Epoch Learning Curves", fontsize=15, fontweight="bold")
+    fig.suptitle("BC Training (LoRA) — Per-Epoch Learning Curves", fontsize=15, fontweight="bold")
 
     ax = axes[0, 0]
     ax.plot(epochs, solve, "o-", color="#2563eb", linewidth=2, markersize=7)
@@ -253,7 +272,7 @@ def plot_grid_results(grid_results, save_dir):
         ax.set_yticklabels(temperatures)
         ax.set_xlabel("Context Window (max_length)")
         ax.set_ylabel("Temperature")
-        ax.set_title(f"Grid Search — {title}")
+        ax.set_title(f"Grid Search (LoRA) — {title}")
         for i in range(len(temperatures)):
             for j in range(len(max_lengths)):
                 ax.text(j, i, f"{grid[i,j]:.1%}", ha="center", va="center",
@@ -270,9 +289,14 @@ def plot_grid_results(grid_results, save_dir):
 # ─── Single training run for a given max_length ──────────────────
 
 def train_single(args, max_length: int, run_dir: str):
-    """Train one model with the given max_length. Returns (tokenizer, epoch_metrics, train_time)."""
+    """Train one model with LoRA at the given max_length.
+
+    Returns (tokenizer, epoch_metrics, train_time).
+    Saved checkpoint is a MERGED model (standard HF format).
+    """
     from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments, Trainer
     from datasets import Dataset
+    from peft import LoraConfig, get_peft_model, TaskType
     import torch
 
     pairs = build_prompt_target_pairs(args.data)
@@ -281,9 +305,11 @@ def train_single(args, max_length: int, run_dir: str):
         print("  No pairs found — skipping.")
         return None, [], 0
 
+    # ── Load base model & tokenizer ─────────────────────────────
     tokenizer = AutoTokenizer.from_pretrained(args.model_name, trust_remote_code=True)
     if tokenizer.pad_token_id is None:
         tokenizer.pad_token_id = tokenizer.eos_token_id
+
     model = AutoModelForCausalLM.from_pretrained(
         args.model_name,
         torch_dtype=torch.bfloat16 if torch.cuda.is_available() else torch.float32,
@@ -291,6 +317,27 @@ def train_single(args, max_length: int, run_dir: str):
         trust_remote_code=True,
     )
 
+    # ── Apply LoRA ──────────────────────────────────────────────
+    lora_config = LoraConfig(
+        task_type=TaskType.CAUSAL_LM,
+        r=args.lora_r,
+        lora_alpha=args.lora_alpha,
+        lora_dropout=args.lora_dropout,
+        target_modules=_get_target_modules(model, args.lora_target_modules),
+        bias="none",
+    )
+    model = get_peft_model(model, lora_config)
+
+    trainable, total = model.get_nb_trainable_parameters()
+    print(f"  LoRA: r={args.lora_r}, alpha={args.lora_alpha}, dropout={args.lora_dropout}")
+    print(f"  Trainable: {trainable:,} / {total:,} params ({100*trainable/total:.2f}%)")
+
+    # Enable gradient checkpointing for memory efficiency
+    if torch.cuda.is_available():
+        model.gradient_checkpointing_enable()
+        model.enable_input_require_grads()
+
+    # ── Tokenize ────────────────────────────────────────────────
     prompt_prefix = "Observation:\n"
     action_prefix = "\nAction: "
 
@@ -331,13 +378,14 @@ def train_single(args, max_length: int, run_dir: str):
     tokenized = dataset.map(tokenize_fn, batched=True,
                             remove_columns=dataset.column_names, desc="Tokenizing")
 
+    # ── Callbacks ───────────────────────────────────────────────
     epoch_metrics = []
-    trainer_ref = [None]
+    peft_model_ref = [model]  # mutable ref for callback
 
     callbacks = []
     if not args.skip_eval:
         EvalCB = make_eval_callback_class(
-            trainer_ref=trainer_ref,
+            peft_model_ref=peft_model_ref,
             tokenizer=tokenizer,
             save_dir=run_dir,
             offline_data=args.data,
@@ -345,10 +393,12 @@ def train_single(args, max_length: int, run_dir: str):
             eval_n=args.eval_n,
             eval_budget=args.eval_budget,
             epoch_metrics=epoch_metrics,
-            temperature=None,  # temperature is evaluated separately in the grid
+            base_model_name=args.model_name,
+            temperature=None,  # temperature searched separately in grid
         )
         callbacks.append(EvalCB())
 
+    # ── Train ───────────────────────────────────────────────────
     training_args = TrainingArguments(
         output_dir=run_dir,
         num_train_epochs=args.epochs,
@@ -358,6 +408,9 @@ def train_single(args, max_length: int, run_dir: str):
         logging_steps=20,
         bf16=torch.cuda.is_available(),
         remove_unused_columns=False,
+        # LoRA-specific: warmup helps with small datasets
+        warmup_ratio=0.06,
+        weight_decay=0.01,
     )
     trainer = Trainer(
         model=model,
@@ -365,23 +418,76 @@ def train_single(args, max_length: int, run_dir: str):
         train_dataset=tokenized,
         callbacks=callbacks,
     )
-    trainer_ref[0] = trainer
+
+    print(f"\n  Training with LoRA for {args.epochs} epochs")
+    print(f"  LR={args.lr}  BS={args.batch_size}  MaxLen={max_length}")
 
     t0 = time.time()
     trainer.train()
     train_time = time.time() - t0
 
-    trainer.save_model(run_dir)
+    # ── Save final merged model ─────────────────────────────────
+    # Merge LoRA weights into base model so the saved checkpoint
+    # is a standard HF model — learning_agent.py loads it normally.
+    print(f"  Merging LoRA into base model and saving to {run_dir}")
+    peft_model = peft_model_ref[0]
+
+    # Save LoRA adapter before merging (small, useful for reference)
+    adapter_dir = os.path.join(run_dir, "lora_adapter")
+    os.makedirs(adapter_dir, exist_ok=True)
+    peft_model.save_pretrained(adapter_dir)
+
+    # Merge and save as standard HF model
+    merged = peft_model.merge_and_unload()
+    merged.save_pretrained(run_dir)
     tokenizer.save_pretrained(run_dir)
 
     return tokenizer, epoch_metrics, train_time
+
+
+def _get_target_modules(model, target_modules_arg):
+    """Determine which layers to apply LoRA to.
+
+    If user passed explicit modules, use those.
+    Otherwise auto-detect q_proj/v_proj for typical architectures.
+    """
+    if target_modules_arg:
+        return target_modules_arg.split(",")
+
+    # Auto-detect: look at the model's module names for common patterns
+    module_names = set()
+    for name, _ in model.named_modules():
+        parts = name.split(".")
+        if parts:
+            module_names.add(parts[-1])
+
+    # Qwen, Llama, Mistral all use q_proj, k_proj, v_proj, o_proj
+    qkv_modules = {"q_proj", "k_proj", "v_proj", "o_proj"}
+    found_qkv = qkv_modules & module_names
+    if found_qkv:
+        # Apply to all attention projections for best quality
+        targets = sorted(found_qkv)
+        print(f"  Auto-detected LoRA targets: {targets}")
+        return targets
+
+    # Fallback for other architectures
+    attention_patterns = {"query", "key", "value", "dense", "attention"}
+    found = attention_patterns & module_names
+    if found:
+        targets = sorted(found)
+        print(f"  Auto-detected LoRA targets: {targets}")
+        return targets
+
+    # Last resort: let peft auto-detect
+    print(f"  Using peft auto-detection for LoRA target modules")
+    return None
 
 
 # ─── Main (grid search) ──────────────────────────────────────────
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Train BC model with grid search over temperature & context window"
+        description="Train BC model (LoRA) with grid search over temperature & context window"
     )
     # Training args (fixed across grid)
     parser.add_argument("--data", "-d", type=str, default="data/offline_trajectories.json")
@@ -389,10 +495,21 @@ def main():
     parser.add_argument("--model_name", "-m", type=str, default="Qwen/Qwen3-1.7B")
     parser.add_argument("--epochs", type=int, default=10)
     parser.add_argument("--batch_size", type=int, default=4)
-    parser.add_argument("--lr", type=float, default=2e-5)
+    parser.add_argument("--lr", type=float, default=2e-4,
+                        help="Learning rate (LoRA typically needs higher LR, e.g. 2e-4)")
+
+    # LoRA hyperparameters
+    parser.add_argument("--lora_r", type=int, default=16,
+                        help="LoRA rank (higher = more capacity, default 16)")
+    parser.add_argument("--lora_alpha", type=int, default=32,
+                        help="LoRA alpha scaling (default 32, typically 2*r)")
+    parser.add_argument("--lora_dropout", type=float, default=0.05,
+                        help="LoRA dropout (default 0.05)")
+    parser.add_argument("--lora_target_modules", type=str, default=None,
+                        help="Comma-separated module names (default: auto-detect q/k/v/o_proj)")
 
     # Grid search params
-    parser.add_argument("--max_lengths", type=int, nargs="+", default=[512, 768, 1024],
+    parser.add_argument("--max_lengths", type=int, nargs="+", default=[1024, 1536, 2048],
                         help="Context window sizes to search over")
     parser.add_argument("--temperatures", type=float, nargs="+", default=[0.1, 0.5, 1.0],
                         help="Generation temperatures to search over")
@@ -415,17 +532,23 @@ def main():
     except ImportError as e:
         print("Install: pip install torch transformers datasets")
         raise SystemExit(1) from e
+    try:
+        import peft
+    except ImportError:
+        print("Install: pip install peft")
+        raise SystemExit(1)
 
     os.makedirs(args.save_dir, exist_ok=True)
 
     combos = list(itertools.product(args.max_lengths, args.temperatures))
     print(f"\n{'═'*60}")
-    print(f"  GRID SEARCH: {len(args.max_lengths)} max_lengths × {len(args.temperatures)} temperatures")
+    print(f"  GRID SEARCH (LoRA): {len(args.max_lengths)} max_lengths × {len(args.temperatures)} temperatures")
     print(f"  = {len(combos)} evaluation points")
     print(f"  (Only {len(args.max_lengths)} training runs needed — temperature is eval-time)")
     print(f"  max_lengths:  {args.max_lengths}")
     print(f"  temperatures: {args.temperatures}")
     print(f"  epochs: {args.epochs}  lr: {args.lr}  batch_size: {args.batch_size}")
+    print(f"  LoRA: r={args.lora_r}  alpha={args.lora_alpha}  dropout={args.lora_dropout}")
     print(f"{'═'*60}\n")
 
     # Phase 1: Train one model per unique max_length
@@ -446,6 +569,8 @@ def main():
             json.dump({
                 "max_length": ml, "epochs": args.epochs,
                 "lr": args.lr, "batch_size": args.batch_size,
+                "lora_r": args.lora_r, "lora_alpha": args.lora_alpha,
+                "lora_dropout": args.lora_dropout,
                 "train_time": train_time,
                 "epoch_metrics": epoch_metrics,
             }, f, indent=2, default=str)
@@ -479,7 +604,7 @@ def main():
         json.dump(grid_results, f, indent=2, default=str)
 
     print(f"\n{'═'*60}")
-    print(f"  GRID SEARCH RESULTS")
+    print(f"  GRID SEARCH RESULTS (LoRA)")
     print(f"{'═'*60}")
     print(f"  {'MaxLen':<9} {'Temp':<8} {'Solve%':<9} {'Acc%':<9} {'Reward':<9}")
     print(f"  {'─'*44}")

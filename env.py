@@ -420,28 +420,28 @@ class ArcEnv:
             "inventory": self.inventory.summary(),
         }
 
-        if initial:
-            # Include train examples overview
-            train_summaries = []
-            for i in range(self.puzzle.num_train):
-                pair = self.puzzle.train[i]
-                inp = tuple(tuple(r) for r in pair["input"])
-                out = tuple(tuple(r) for r in pair["output"])
-                train_summaries.append({
-                    "index": i,
-                    "input_shape": f"{len(inp)}x{len(inp[0])}",
-                    "output_shape": f"{len(out)}x{len(out[0])}",
-                    "input_grid": render_grid(inp, colored=(self.render_mode == "ansi")),
-                    "output_grid": render_grid(out, colored=(self.render_mode == "ansi")),
-                    "diff": render_diff(inp, out),
-                })
-            obs["train_examples"] = train_summaries
+        # Always include train examples and test input so the agent
+        # has puzzle context at every step, not just step 0.
+        train_summaries = []
+        for i in range(self.puzzle.num_train):
+            pair = self.puzzle.train[i]
+            inp = tuple(tuple(r) for r in pair["input"])
+            out = tuple(tuple(r) for r in pair["output"])
+            train_summaries.append({
+                "index": i,
+                "input_shape": f"{len(inp)}x{len(inp[0])}",
+                "output_shape": f"{len(out)}x{len(out[0])}",
+                "input_grid": render_grid(inp, colored=(self.render_mode == "ansi")),
+                "output_grid": render_grid(out, colored=(self.render_mode == "ansi")),
+                "diff": render_diff(inp, out),
+            })
+        obs["train_examples"] = train_summaries
 
-            test_inp = self.puzzle.test_input(self.test_index)
-            obs["test_input"] = {
-                "shape": f"{len(test_inp)}x{len(test_inp[0])}",
-                "grid": render_grid(test_inp, colored=(self.render_mode == "ansi")),
-            }
+        test_inp = self.puzzle.test_input(self.test_index)
+        obs["test_input"] = {
+            "shape": f"{len(test_inp)}x{len(test_inp[0])}",
+            "grid": render_grid(test_inp, colored=(self.render_mode == "ansi")),
+        }
 
         if action_result:
             obs["last_action_result"] = action_result
