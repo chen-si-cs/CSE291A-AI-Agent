@@ -111,7 +111,7 @@ def run_episode(env: ArcEnv, agent: LLMAgent, puzzle_id: str, verbose: bool = Fa
         if steps >= env.max_steps:
             break
 
-    solved = info.get("success", False) if done else False
+    solved = info.get("exact_match", False) if done else False
     total_reward = info.get("total_reward", env.total_reward) if done else env.total_reward
     return solved, total_reward, steps, info
 
