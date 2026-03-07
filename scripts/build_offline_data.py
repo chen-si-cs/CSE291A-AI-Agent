@@ -21,6 +21,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from env import ArcEnv
 from solver_trajectory import solver_function_to_actions, get_solver_puzzle_id
+from puzzle_ids import TRAIN_IDS
 
 
 def load_all_solvers():
@@ -95,8 +96,11 @@ def main():
     solver_map = load_all_solvers()
 
     puzzle_ids_in_env = set(env.puzzle_db.ids())
+    allowed = set(TRAIN_IDS)
+    # Only keep solvers for puzzles in the hardcoded TRAIN_IDS list
+    solver_map = {pid: fn for pid, fn in solver_map.items() if pid in allowed}
     matched = [p for p in solver_map if p in puzzle_ids_in_env]
-    print(f"Solvers: {len(solver_map)}, In env: {len(puzzle_ids_in_env)}, Matched: {len(matched)}")
+    print(f"Solvers (filtered to TRAIN_IDS): {len(solver_map)}, In env: {len(puzzle_ids_in_env)}, Matched: {len(matched)}")
 
     trajectories = build_trajectories(env, solver_map)
     print(f"Built {len(trajectories)} trajectories")
