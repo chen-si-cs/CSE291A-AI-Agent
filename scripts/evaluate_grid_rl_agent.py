@@ -96,7 +96,7 @@ def run_RLagent_episode(env, agent: RLAgentWrapper,
         n_steps      += 1
         agent._agent.on_step_result(obs, reward, done, info)
 
-    puzzle_solved = info.get("success", False) and not info.get("budget_exceeded", False)
+    puzzle_solved = info.get("exact_match", False)
     return total_reward, puzzle_solved, n_steps
 
 

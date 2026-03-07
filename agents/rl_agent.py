@@ -33,7 +33,7 @@ def _obs_to_state(obs: dict, max_steps: int = 20) -> List[float]:
     inv = obs.get("inventory") or {}
     inv_count = len(inv)
     last_result = obs.get("last_action_result") or {}
-    last_ok = 1.0 if last_result.get("success", True) else 0.0  # no result => ok
+    last_ok = 1.0 if last_result.get("action_ok", True) else 0.0  # no result => ok
     return [
         turn / max(1, max_steps),
         budget / max(1, max_steps),

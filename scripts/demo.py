@@ -85,7 +85,7 @@ def demo_00d62c1b(env: ArcEnv):
         if done:
             print(f"\n{'═'*60}")
             print(f"  Episode complete!")
-            print(f"  Correct: {info.get('success', info.get('exact_match', False))}")
+            print(f"  Correct: {info.get('exact_match', False)}")
             print(f"  Steps: {info.get('steps_taken', env.steps_taken)}")
             print(f"  Total reward: {info.get('total_reward', env.total_reward):.3f}")
             print(f"{'═'*60}")
