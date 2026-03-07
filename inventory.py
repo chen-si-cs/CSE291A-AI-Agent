@@ -183,8 +183,19 @@ def _preview(value: Any, type_label: str, max_len: int = 120) -> str:
     if type_label.startswith("Objects("):
         return f"{len(value)} objects"
     if type_label.startswith("Indices("):
-        pts = sorted(value)[:6]
-        parts = [f"({i},{j})" for i, j in pts]
+        # pts = sorted(value)[:6]
+        # parts = [f"({i},{j})" for i, j in pts]
+        # if len(value) > 6:
+        #     parts.append("...")
+        # return ", ".join(parts)
+        # Only sort if all elements are tuples of length 2
+        try:
+            pts = sorted(value)[:6]
+            parts = [f"({i},{j})" for i, j in pts]
+        except TypeError:
+            # Mixed types (e.g. frozenset of ints and tuples) — fall back to repr
+            pts = list(value)[:6]
+            parts = [repr(p) for p in pts]
         if len(value) > 6:
             parts.append("...")
         return ", ".join(parts)

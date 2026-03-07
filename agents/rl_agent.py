@@ -33,7 +33,7 @@ def _obs_to_state(obs: dict, max_steps: int = 20) -> List[float]:
     inv = obs.get("inventory") or {}
     inv_count = len(inv)
     last_result = obs.get("last_action_result") or {}
-    last_ok = 1.0 if last_result.get("success", True) else 0.0  # no result => ok
+    last_ok = 1.0 if last_result.get("action_ok", True) else 0.0  # no result => ok
     return [
         turn / max(1, max_steps),
         budget / max(1, max_steps),
@@ -119,12 +119,15 @@ class RLAgent(BaseAgent):
         logits = self._policy(x)
         dist = torch.distributions.Categorical(logits=logits)
         if deterministic:
-            action_idx = logits.argmax(dim=-1).item()
-            log_prob = dist.log_prob(torch.tensor([action_idx], device=self._device)).item()
+            action_t = logits.argmax(dim=-1)
+            # action_idx = logits.argmax(dim=-1).item()
+            # log_prob = dist.log_prob(torch.tensor([action_idx], device=self._device)).item()
         else:
             action_t = dist.sample()
-            action_idx = action_t.item()
-            log_prob = dist.log_prob(action_t).item()
+            # action_idx = action_t.item()
+            # log_prob = dist.log_prob(action_t).item()
+        action_idx = action_t.item()
+        log_prob = dist.log_prob(action_t)
         return logits, action_idx, log_prob
 
     def setup(self, observation: dict) -> None:
@@ -166,9 +169,16 @@ class RLAgent(BaseAgent):
         for r in reversed(rewards):
             R = r + gamma * R
             returns.insert(0, R)
-        log_probs = torch.tensor([lp for (_, _, lp, _) in traj], device=self._device, dtype=torch.float32)
+        #log_probs = torch.tensor([lp for (_, _, lp, _) in traj], device=self._device, dtype=torch.float32)
+        log_probs = torch.stack([lp for (_, _, lp, _) in traj])
         returns_t = torch.tensor(returns, device=self._device, dtype=torch.float32)
-        returns_t = (returns_t - returns_t.mean()) / (returns_t.std() + 1e-8)
+        #returns_t = (returns_t - returns_t.mean()) / (returns_t.std() + 1e-8)
+        mean = returns_t.mean()
+        std = returns_t.std(unbiased=False) # avoids DoF <=0
+        if std > 0:
+            returns_t = (returns_t - mean) / (std + 1e-8)
+        else:
+            returns_t = returns_t - mean
         loss = -(log_probs * returns_t).sum()
         self._optimizer.zero_grad()
         loss.backward()

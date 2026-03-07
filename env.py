@@ -205,6 +205,44 @@ class ArcEnv:
         store_as = action.get("store_as", None)
 
         if not self.engine.has_function(func_name):
+            # Fallback: check if func_name is an inventory variable holding a callable.
+            # This handles solver patterns like `x3 = x2(I)` where x2 stores a
+            # composed/partial function from chain(), compose(), lbind(), etc.
+            if self.inventory.has(func_name):
+                stored_val = self.inventory.get(func_name)
+                if callable(stored_val):
+                    try:
+                        resolved_args = self.engine.resolve_args(raw_args, self.inventory)
+                        result = stored_val(*resolved_args)
+                    except Exception as e:
+                        return invalid_action_penalty(), {
+                            "error": f"Error calling inventory callable '{func_name}': {e}"
+                        }
+                    # Store result (same logic as normal execute path below)
+                    if store_as is None:
+                        store_as = self.inventory.next_name()
+                    arg_strs = []
+                    for raw in raw_args:
+                        if isinstance(raw, bool):
+                            arg_strs.append(str(raw))
+                        elif isinstance(raw, str):
+                            arg_strs.append(raw)
+                        else:
+                            arg_strs.append(repr(raw))
+                    provenance = f"{func_name}({', '.join(arg_strs)})"
+                    slot = self.inventory.set(
+                        store_as, result,
+                        provenance=provenance,
+                        step_number=self.steps_taken + 1,
+                    )
+                    return 0.0, {
+                        "success": True,
+                        "stored": store_as,
+                        "type": slot.type_label,
+                        "preview": slot.type_label,
+                        "provenance": provenance,
+                        "message": f"✓ {store_as} = {provenance}  →  {slot.type_label}",
+                    }
             return invalid_action_penalty(), {
                 "error": f"Unknown function: '{func_name}'",
                 "suggestion": self._suggest_function(func_name),
@@ -246,7 +284,7 @@ class ArcEnv:
         )
 
         return 0.0, {
-            "success": True,
+            "action_ok": True,
             "stored": store_as,
             "type": slot.type_label,
             "preview": slot.type_label,

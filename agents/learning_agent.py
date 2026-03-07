@@ -24,6 +24,26 @@ PROMPT_PREFIX = "Observation:\n"
 ACTION_PREFIX = "\nAction: "
 
 
+def _fix_json_action(action: dict) -> dict:
+    """Fix JSON round-trip damage: convert lists back to tuples in action args.
+
+    JSON has no tuple type, so (1, -1) serializes as [1, -1].  DSL functions
+    expect tuples, so we must convert back when loading from JSON.
+    """
+    if "args" not in action:
+        return action
+    action = dict(action)  # shallow copy
+    action["args"] = [_list_to_tuple(a) for a in action["args"]]
+    return action
+
+
+def _list_to_tuple(val):
+    """Recursively convert lists to tuples (for JSON-deserialized action args)."""
+    if isinstance(val, list):
+        return tuple(_list_to_tuple(v) for v in val)
+    return val
+
+
 class LearningAgent(BaseAgent):
     """
     BC agent: uses a trained Qwen3-1.7B to generate next action from observation.
@@ -85,7 +105,7 @@ class LearningAgent(BaseAgent):
                 step_idx = s.get("step", i)
                 action = s.get("action")
                 if pid and action is not None:
-                    self._lookup[(pid, step_idx)] = action
+                    self._lookup[(pid, step_idx)] = _fix_json_action(action)
                     n += 1
         return n
 
@@ -173,7 +193,7 @@ class LearningAgent(BaseAgent):
                 self.on_step_result(obs, reward, done, info)
                 if done:
                     self.on_episode_end(info.get("total_reward", 0), info.get("steps_taken", 0), info)
-                    if info.get("success"):
+                    if info.get("exact_match"):
                         solved += 1
                     break
         if verbose:
