@@ -1,0 +1,444 @@
+
+============================================================
+PUZZLE: 48d8fb45  |  GT steps: 6  |  DSL funcs: {'matcher', 'subgrid', 'extract', 'objects', 'lbind'}
+GT solution:
+  x1 = objects(I, T, T, T)
+  x2 = matcher(size, ONE)
+  x3 = extract(x1, x2)
+  x4 = lbind(adjacent, x3)
+  x5 = extract(x1, x4)
+  O = subgrid(x5, I)
+============================================================
+
+--- INITIAL OBSERVATION ---
+=== ARC-AGI PUZZLE ===
+TRAINING EXAMPLES:
+
+--- Train Pair 1 ---
+Input:
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+  [0, 0, 0, 0, 0, 0, 0, 0, 1, 1]
+  [0, 0, 0, 5, 0, 0, 0, 1, 1, 0]
+  [0, 0, 0, 1, 0, 0, 0, 0, 1, 0]
+  [0, 0, 1, 1, 1, 0, 0, 0, 0, 0]
+  [0, 0, 0, 1, 1, 0, 0, 0, 0, 0]
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+  [0, 0, 0, 0, 0, 0, 1, 1, 0, 0]
+  [0, 0, 0, 0, 0, 1, 1, 1, 0, 0]
+  [0, 0, 0, 0, 0, 0, 1, 1, 0, 0]
+Output:
+  [0, 1, 0]
+  [1, 1, 1]
+  [0, 1, 1]
+
+--- Train Pair 2 ---
+Input:
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+  [0, 0, 0, 0, 0, 0, 0, 5, 0, 0]
+  [0, 0, 0, 0, 0, 0, 4, 4, 0, 0]
+  [0, 0, 4, 0, 0, 0, 0, 0, 4, 0]
+  [0, 4, 0, 4, 0, 0, 0, 4, 0, 0]
+  [0, 0, 4, 4, 0, 0, 0, 0, 0, 0]
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+Output:
+  [4, 4, 0]
+  [0, 0, 4]
+  [0, 4, 0]
+
+--- Train Pair 3 ---
+Input:
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+  [0, 0, 2, 2, 0, 0, 0, 0, 0, 0]
+  [0, 2, 0, 2, 0, 0, 0, 0, 0, 0]
+  [0, 0, 2, 0, 0, 0, 0, 5, 0, 0]
+  [0, 0, 0, 0, 0, 0, 0, 2, 2, 0]
+  [0, 0, 0, 0, 0, 0, 2, 2, 0, 0]
+  [0, 0, 0, 0, 0, 0, 0, 2, 0, 0]
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+Output:
+  [0, 2, 2]
+  [2, 2, 0]
+  [0, 2, 0]
+
+--- Test Input ---
+Input:
+  [0, 0, 0, 0, 0, 0, 5, 0, 0, 0]
+  [0, 0, 0, 0, 0, 0, 3, 0, 0, 0]
+  [0, 0, 0, 0, 0, 3, 3, 0, 0, 0]
+  [0, 0, 0, 0, 0, 0, 3, 3, 0, 0]
+  [0, 0, 3, 0, 0, 0, 0, 0, 0, 0]
+  [0, 3, 3, 0, 0, 0, 0, 0, 0, 0]
+  [0, 0, 3, 0, 0, 0, 3, 0, 0, 0]
+  [0, 0, 0, 0, 0, 3, 3, 3, 0, 0]
+  [0, 0, 0, 0, 0, 0, 3, 3, 0, 0]
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+
+Your goal: produce the correct output grid for this test input.
+
+=== AVAILABLE DSL FUNCTIONS ===
+  extract(container, condition)  --  first element of container that satisfies condition
+  lbind(function, fixed)  --  fix the leftmost argument
+  matcher(function, target)  --  construction of equality function
+  objects(grid, univalued, diagonal, without_bg)  --  objects occurring on the grid
+  subgrid(patch, grid)  --  smallest subgrid containing object
+
+=== AVAILABLE CONSTANTS ===
+  ONE=1, T=True
+
+=== CURRENT VARIABLES ===
+  I = <test input grid shown above>
+
+Write the next DSL call:
+--- END INITIAL OBSERVATION ---
+
+
+--- PLANNING ANALYSIS ---
+### Analysis
+
+1. **Transformation Pattern/Rule**:
+   - The input grids contain numbers (0-5) arranged in a 10x10 grid.
+   - The output grids are 3x3 grids.
+   - The output grids seem to capture the highest numbers in the input grid and their positions relative to each other. Specifically, the output grid appears to represent the highest numbers in the input grid, arranged in a 3x3 grid where the positions correspond to their relative positions in the input grid.
+   - For example, in the first training pair, the highest numbers are 1 and 5. The output grid captures the positions of these numbers relative to each other.
+
+2. **Applying DSL Functions**:
+   - **objects(grid, univalued, diagonal, without_bg)**: This function can be used to identify the objects (non-zero numbers) in the grid.
+   - **subgrid(patch, grid)**: This function can be used to find the smallest subgrid containing a specific object.
+   - **extract(container, condition)**: This function can be used to extract specific elements from a container based on a condition.
+   - **lbind(function, fixed)**: This function can be used to fix the leftmost argument of a function.
+   - **matcher(function, target)**: This function can be used to construct an equality function.
+
+3. **Step-by-Step Plan**:
+   - Identify all non-zero numbers in the input grid using the `objects` function.
+   - For each non-zero number, find the smallest subgrid containing it using the `subgrid` function.
+   - Extract the highest numbers and their relative positions to form a 3x3 grid.
+   - Construct the output grid based on the relative positions of the highest numbers.
+
+### Step-by-Step Code Implementation
+
+1. Identify all non-zero numbers in the input grid:
+   ```python
+   x1 = objects(I, ONE, False, True)
+   ```
+
+2. Extract the highest numbers and their positions:
+   ```python
+   x2 = extract(x1, lambda x: x == max(x1))
+   ```
+
+3. Find the smallest subgrid containing the highest number:
+   ```python
+   x3 = subgrid(x2, I)
+   ```
+
+4. Construct the output grid based on the relative positions of the highest numbers:
+   ```python
+   x4 = lbind(matcher, x3)
+   ```
+
+5. Assign the final output:
+   ```python
+   O = x4
+   ```
+
+However, based on the training examples, it seems that the output grid is a 3x3 grid that captures the highest numbers and their relative positions. The exact implementation might require more steps to extract the specific numbers and their positions.
+
+Let's start with the first step:
+
+```python
+x1 = objects(I, ONE, False, True)
+```
+--- END PLANNING ---
+
+  Step  1 | x1 = objects(I, ONE, False, True)
+           -> OK: x1 assigned
+    --- feedback (step 1) ---
+Executed: x1 = objects(I, ONE, False, True)
+Result: OK: x1 assigned
+
+=== CURRENT VARIABLES ===
+  I = <10x10 grid>
+    [0, 0, 0, 0, 0, 0, 5, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 3, 0, 0, 0]
+    [0, 0, 0, 0, 0, 3, 3, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 3, 3, 0, 0]
+    [0, 0, 3, 0, 0, 0, 0, 0, 0, 0]
+    [0, 3, 3, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 3, 0, 0, 0, 3, 0, 0, 0]
+    [0, 0, 0, 0, 0, 3, 3, 3, 0, 0]
+    [0, 0, 0, 0, 0, 0, 3, 3, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+  x1 = frozenset({frozenset({(5, (0, 6))}), frozenset({(3, (3, 6)), (3, (2, 5)), (3, (1, 6)), (3, (3, 7)), (3, (2, 6))}), frozenset({(3, (7, 7)), (3, (6, 6)), (3, (8, 7)), (3, (7, 6)), (3, (8, 6)), (3, (7, 5...
+
+Available DSL functions:
+  extract(container, condition)  --  first element of container that satisfies condition
+  lbind(function, fixed)  --  fix the leftmost argument
+  matcher(function, target)  --  construction of equality function
+  objects(grid, univalued, diagonal, without_bg)  --  objects occurring on the grid
+  subgrid(patch, grid)  --  smallest subgrid containing object
+
+Write the next DSL call:
+  Step  2 | x2 = extract(x1, lambda x: 5 in x)
+           -> Execution error: StopIteration: 
+    --- feedback (step 2) ---
+ERROR executing: x2 = extract(x1, lambda x: 5 in x)
+Error: Execution error: StopIteration: 
+Please try again with a valid DSL call.
+
+=== CURRENT VARIABLES ===
+  I = <10x10 grid>
+    [0, 0, 0, 0, 0, 0, 5, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 3, 0, 0, 0]
+    [0, 0, 0, 0, 0, 3, 3, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 3, 3, 0, 0]
+    [0, 0, 3, 0, 0, 0, 0, 0, 0, 0]
+    [0, 3, 3, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 3, 0, 0, 0, 3, 0, 0, 0]
+    [0, 0, 0, 0, 0, 3, 3, 3, 0, 0]
+    [0, 0, 0, 0, 0, 0, 3, 3, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+  x1 = frozenset({frozenset({(5, (0, 6))}), frozenset({(3, (3, 6)), (3, (2, 5)), (3, (1, 6)), (3, (3, 7)), (3, (2, 6))}), frozenset({(3, (7, 7)), (3, (6, 6)), (3, (8, 7)), (3, (7, 6)), (3, (8, 6)), (3, (7, 5...
+
+Available DSL functions:
+  extract(container, condition)  --  first element of container that satisfies condition
+  lbind(function, fixed)  --  fix the leftmost argument
+  matcher(function, target)  --  construction of equality function
+  objects(grid, univalued, diagonal, without_bg)  --  objects occurring on the grid
+  subgrid(patch, grid)  --  smallest subgrid containing object
+
+Write the next DSL call:
+  Step  3 | x2 = extract(x1, lambda x: (5, (0, 6)) in x)
+           -> OK: x2 assigned
+    --- feedback (step 3) ---
+Executed: x2 = extract(x1, lambda x: (5, (0, 6)) in x)
+Result: OK: x2 assigned
+
+=== CURRENT VARIABLES ===
+  I = <10x10 grid>
+    [0, 0, 0, 0, 0, 0, 5, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 3, 0, 0, 0]
+    [0, 0, 0, 0, 0, 3, 3, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 3, 3, 0, 0]
+    [0, 0, 3, 0, 0, 0, 0, 0, 0, 0]
+    [0, 3, 3, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 3, 0, 0, 0, 3, 0, 0, 0]
+    [0, 0, 0, 0, 0, 3, 3, 3, 0, 0]
+    [0, 0, 0, 0, 0, 0, 3, 3, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+  x1 = frozenset({frozenset({(5, (0, 6))}), frozenset({(3, (3, 6)), (3, (2, 5)), (3, (1, 6)), (3, (3, 7)), (3, (2, 6))}), frozenset({(3, (7, 7)), (3, (6, 6)), (3, (8, 7)), (3, (7, 6)), (3, (8, 6)), (3, (7, 5...
+  x2 = frozenset({(5, (0, 6))})
+
+Available DSL functions:
+  extract(container, condition)  --  first element of container that satisfies condition
+  lbind(function, fixed)  --  fix the leftmost argument
+  matcher(function, target)  --  construction of equality function
+  objects(grid, univalued, diagonal, without_bg)  --  objects occurring on the grid
+  subgrid(patch, grid)  --  smallest subgrid containing object
+
+Write the next DSL call:
+  Step  4 | x3 = subgrid(x2, I)
+           -> OK: x3 assigned
+    --- feedback (step 4) ---
+Executed: x3 = subgrid(x2, I)
+Result: OK: x3 assigned
+
+=== CURRENT VARIABLES ===
+  I = <10x10 grid>
+    [0, 0, 0, 0, 0, 0, 5, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 3, 0, 0, 0]
+    [0, 0, 0, 0, 0, 3, 3, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 3, 3, 0, 0]
+    [0, 0, 3, 0, 0, 0, 0, 0, 0, 0]
+    [0, 3, 3, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 3, 0, 0, 0, 3, 0, 0, 0]
+    [0, 0, 0, 0, 0, 3, 3, 3, 0, 0]
+    [0, 0, 0, 0, 0, 0, 3, 3, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+  x1 = frozenset({frozenset({(5, (0, 6))}), frozenset({(3, (3, 6)), (3, (2, 5)), (3, (1, 6)), (3, (3, 7)), (3, (2, 6))}), frozenset({(3, (7, 7)), (3, (6, 6)), (3, (8, 7)), (3, (7, 6)), (3, (8, 6)), (3, (7, 5...
+  x2 = frozenset({(5, (0, 6))})
+  x3 = <1x1 grid>
+    [5]
+
+Available DSL functions:
+  extract(container, condition)  --  first element of container that satisfies condition
+  lbind(function, fixed)  --  fix the leftmost argument
+  matcher(function, target)  --  construction of equality function
+  objects(grid, univalued, diagonal, without_bg)  --  objects occurring on the grid
+  subgrid(patch, grid)  --  smallest subgrid containing object
+
+Write the next DSL call:
+  Step  5 | x4 = extract(x1, lambda x: (3, (3, 6)) in x)
+           -> OK: x4 assigned
+    --- feedback (step 5) ---
+Executed: x4 = extract(x1, lambda x: (3, (3, 6)) in x)
+Result: OK: x4 assigned
+
+=== CURRENT VARIABLES ===
+  I = <10x10 grid>
+    [0, 0, 0, 0, 0, 0, 5, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 3, 0, 0, 0]
+    [0, 0, 0, 0, 0, 3, 3, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 3, 3, 0, 0]
+    [0, 0, 3, 0, 0, 0, 0, 0, 0, 0]
+    [0, 3, 3, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 3, 0, 0, 0, 3, 0, 0, 0]
+    [0, 0, 0, 0, 0, 3, 3, 3, 0, 0]
+    [0, 0, 0, 0, 0, 0, 3, 3, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+  x1 = frozenset({frozenset({(5, (0, 6))}), frozenset({(3, (3, 6)), (3, (2, 5)), (3, (1, 6)), (3, (3, 7)), (3, (2, 6))}), frozenset({(3, (7, 7)), (3, (6, 6)), (3, (8, 7)), (3, (7, 6)), (3, (8, 6)), (3, (7, 5...
+  x2 = frozenset({(5, (0, 6))})
+  x3 = <1x1 grid>
+    [5]
+  x4 = frozenset({(3, (3, 6)), (3, (2, 5)), (3, (1, 6)), (3, (3, 7)), (3, (2, 6))})
+
+Available DSL functions:
+  extract(container, condition)  --  first element of container that satisfies condition
+  lbind(function, fixed)  --  fix the leftmost argument
+  matcher(function, target)  --  construction of equality function
+  objects(grid, univalued, diagonal, without_bg)  --  objects occurring on the grid
+  subgrid(patch, grid)  --  smallest subgrid containing object
+
+Write the next DSL call:
+  Step  6 | x5 = subgrid(x4, I)
+           -> OK: x5 assigned
+    --- feedback (step 6) ---
+Executed: x5 = subgrid(x4, I)
+Result: OK: x5 assigned
+
+=== CURRENT VARIABLES ===
+  I = <10x10 grid>
+    [0, 0, 0, 0, 0, 0, 5, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 3, 0, 0, 0]
+    [0, 0, 0, 0, 0, 3, 3, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 3, 3, 0, 0]
+    [0, 0, 3, 0, 0, 0, 0, 0, 0, 0]
+    [0, 3, 3, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 3, 0, 0, 0, 3, 0, 0, 0]
+    [0, 0, 0, 0, 0, 3, 3, 3, 0, 0]
+    [0, 0, 0, 0, 0, 0, 3, 3, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+  x1 = frozenset({frozenset({(5, (0, 6))}), frozenset({(3, (3, 6)), (3, (2, 5)), (3, (1, 6)), (3, (3, 7)), (3, (2, 6))}), frozenset({(3, (7, 7)), (3, (6, 6)), (3, (8, 7)), (3, (7, 6)), (3, (8, 6)), (3, (7, 5...
+  x2 = frozenset({(5, (0, 6))})
+  x3 = <1x1 grid>
+    [5]
+  x4 = frozenset({(3, (3, 6)), (3, (2, 5)), (3, (1, 6)), (3, (3, 7)), (3, (2, 6))})
+  x5 = <3x3 grid>
+    [0, 3, 0]
+    [3, 3, 0]
+    [0, 3, 3]
+
+Available DSL functions:
+  extract(container, condition)  --  first element of container that satisfies condition
+  lbind(function, fixed)  --  fix the leftmost argument
+  matcher(function, target)  --  construction of equality function
+  objects(grid, univalued, diagonal, without_bg)  --  objects occurring on the grid
+  subgrid(patch, grid)  --  smallest subgrid containing object
+
+Write the next DSL call:
+  Step  7 | x6 = extract(x1, lambda x: (3, (7, 7)) in x)
+           -> OK: x6 assigned
+    --- feedback (step 7) ---
+Executed: x6 = extract(x1, lambda x: (3, (7, 7)) in x)
+Result: OK: x6 assigned
+
+=== CURRENT VARIABLES ===
+  I = <10x10 grid>
+    [0, 0, 0, 0, 0, 0, 5, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 3, 0, 0, 0]
+    [0, 0, 0, 0, 0, 3, 3, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 3, 3, 0, 0]
+    [0, 0, 3, 0, 0, 0, 0, 0, 0, 0]
+    [0, 3, 3, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 3, 0, 0, 0, 3, 0, 0, 0]
+    [0, 0, 0, 0, 0, 3, 3, 3, 0, 0]
+    [0, 0, 0, 0, 0, 0, 3, 3, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+  x1 = frozenset({frozenset({(5, (0, 6))}), frozenset({(3, (3, 6)), (3, (2, 5)), (3, (1, 6)), (3, (3, 7)), (3, (2, 6))}), frozenset({(3, (7, 7)), (3, (6, 6)), (3, (8, 7)), (3, (7, 6)), (3, (8, 6)), (3, (7, 5...
+  x2 = frozenset({(5, (0, 6))})
+  x3 = <1x1 grid>
+    [5]
+  x4 = frozenset({(3, (3, 6)), (3, (2, 5)), (3, (1, 6)), (3, (3, 7)), (3, (2, 6))})
+  x5 = <3x3 grid>
+    [0, 3, 0]
+    [3, 3, 0]
+    [0, 3, 3]
+  x6 = frozenset({(3, (7, 7)), (3, (6, 6)), (3, (8, 7)), (3, (7, 6)), (3, (8, 6)), (3, (7, 5))})
+
+Available DSL functions:
+  extract(container, condition)  --  first element of container that satisfies condition
+  lbind(function, fixed)  --  fix the leftmost argument
+  matcher(function, target)  --  construction of equality function
+  objects(grid, univalued, diagonal, without_bg)  --  objects occurring on the grid
+  subgrid(patch, grid)  --  smallest subgrid containing object
+
+Write the next DSL call:
+  Step  8 | x7 = subgrid(x6, I)
+           -> OK: x7 assigned
+    --- feedback (step 8) ---
+Executed: x7 = subgrid(x6, I)
+Result: OK: x7 assigned
+
+=== CURRENT VARIABLES ===
+  I = <10x10 grid>
+    [0, 0, 0, 0, 0, 0, 5, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 3, 0, 0, 0]
+    [0, 0, 0, 0, 0, 3, 3, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 3, 3, 0, 0]
+    [0, 0, 3, 0, 0, 0, 0, 0, 0, 0]
+    [0, 3, 3, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 3, 0, 0, 0, 3, 0, 0, 0]
+    [0, 0, 0, 0, 0, 3, 3, 3, 0, 0]
+    [0, 0, 0, 0, 0, 0, 3, 3, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+  x1 = frozenset({frozenset({(5, (0, 6))}), frozenset({(3, (3, 6)), (3, (2, 5)), (3, (1, 6)), (3, (3, 7)), (3, (2, 6))}), frozenset({(3, (7, 7)), (3, (6, 6)), (3, (8, 7)), (3, (7, 6)), (3, (8, 6)), (3, (7, 5...
+  x2 = frozenset({(5, (0, 6))})
+  x3 = <1x1 grid>
+    [5]
+  x4 = frozenset({(3, (3, 6)), (3, (2, 5)), (3, (1, 6)), (3, (3, 7)), (3, (2, 6))})
+  x5 = <3x3 grid>
+    [0, 3, 0]
+    [3, 3, 0]
+    [0, 3, 3]
+  x6 = frozenset({(3, (7, 7)), (3, (6, 6)), (3, (8, 7)), (3, (7, 6)), (3, (8, 6)), (3, (7, 5))})
+  x7 = <3x3 grid>
+    [0, 3, 0]
+    [3, 3, 3]
+    [0, 3, 3]
+
+Available DSL functions:
+  extract(container, condition)  --  first element of container that satisfies condition
+  lbind(function, fixed)  --  fix the leftmost argument
+  matcher(function, target)  --  construction of equality function
+  objects(grid, univalued, diagonal, without_bg)  --  objects occurring on the grid
+  subgrid(patch, grid)  --  smallest subgrid containing object
+
+Write the next DSL call:
+  Step  9 | O = x5
+           -> OK: O assigned
+  >>> SOLVED at step 9! (9/9 cells)
+
+--- GROUND TRUTH COMPARISON ---
+GT solution (6 steps):
+  x1 = objects(I, T, T, T)
+  x2 = matcher(size, ONE)
+  x3 = extract(x1, x2)
+  x4 = lbind(adjacent, x3)
+  x5 = extract(x1, x4)
+  O = subgrid(x5, I)
+Agent solution (9 steps):
+  [OK] x1 = objects(I, ONE, False, True)
+  [ERR] x2 = extract(x1, lambda x: 5 in x)
+  [OK] x2 = extract(x1, lambda x: (5, (0, 6)) in x)
+  [OK] x3 = subgrid(x2, I)
+  [OK] x4 = extract(x1, lambda x: (3, (3, 6)) in x)
+  [OK] x5 = subgrid(x4, I)
+  [OK] x6 = extract(x1, lambda x: (3, (7, 7)) in x)
+  [OK] x7 = subgrid(x6, I)
+  [OK] O = x5
+--- END COMPARISON ---
+
