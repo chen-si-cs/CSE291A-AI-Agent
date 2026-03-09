@@ -1,0 +1,152 @@
+
+============================================================
+PUZZLE: 48d8fb45  |  GT steps: 6  |  GT DSLs: 5  |  Distractors: 10  |  Total DSLs shown: 15
+============================================================
+
+GT DSL functions (5):
+  [GT] extract(container, condition)  --  first element of container that satisfies condition
+  [GT] lbind(function, fixed)  --  fix the leftmost argument
+  [GT] matcher(function, target)  --  construction of equality function
+  [GT] objects(grid, univalued, diagonal, without_bg)  --  objects occurring on the grid
+  [GT] subgrid(patch, grid)  --  smallest subgrid containing object
+
+Distractor DSL functions (10):
+  [DISTRACTOR] center(patch)  --  center of the patch
+  [DISTRACTOR] corners(patch)  --  indices of corners
+  [DISTRACTOR] dedupe(tup)  --  remove duplicates
+  [DISTRACTOR] greater(a, b)  --  greater
+  [DISTRACTOR] hmatching(a, b)  --  whether there exists a row for which both patches have cells
+  [DISTRACTOR] index(grid, loc)  --  color at location
+  [DISTRACTOR] lowermost(patch)  --  row index of lowermost occupied cell
+  [DISTRACTOR] replace(grid, replacee, replacer)  --  color substitution
+  [DISTRACTOR] shift(patch, directions)  --  shift patch
+  [DISTRACTOR] vmirror(piece)  --  mirroring along vertical
+
+Display order shown to agent:
+  [GT] matcher
+  [GT] subgrid
+  [GT] objects
+  [DISTRACTOR] vmirror
+  [DISTRACTOR] center
+  [DISTRACTOR] index
+  [DISTRACTOR] lowermost
+  [GT] lbind
+  [GT] extract
+  [DISTRACTOR] corners
+  [DISTRACTOR] greater
+  [DISTRACTOR] shift
+  [DISTRACTOR] dedupe
+  [DISTRACTOR] hmatching
+  [DISTRACTOR] replace
+
+
+--- INITIAL OBSERVATION ---
+=== ARC-AGI PUZZLE ===
+TRAINING EXAMPLES:
+
+--- Train Pair 1 ---
+Input:
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+  [0, 0, 0, 0, 0, 0, 0, 0, 1, 1]
+  [0, 0, 0, 5, 0, 0, 0, 1, 1, 0]
+  [0, 0, 0, 1, 0, 0, 0, 0, 1, 0]
+  [0, 0, 1, 1, 1, 0, 0, 0, 0, 0]
+  [0, 0, 0, 1, 1, 0, 0, 0, 0, 0]
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+  [0, 0, 0, 0, 0, 0, 1, 1, 0, 0]
+  [0, 0, 0, 0, 0, 1, 1, 1, 0, 0]
+  [0, 0, 0, 0, 0, 0, 1, 1, 0, 0]
+Output:
+  [0, 1, 0]
+  [1, 1, 1]
+  [0, 1, 1]
+
+--- Train Pair 2 ---
+Input:
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+  [0, 0, 0, 0, 0, 0, 0, 5, 0, 0]
+  [0, 0, 0, 0, 0, 0, 4, 4, 0, 0]
+  [0, 0, 4, 0, 0, 0, 0, 0, 4, 0]
+  [0, 4, 0, 4, 0, 0, 0, 4, 0, 0]
+  [0, 0, 4, 4, 0, 0, 0, 0, 0, 0]
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+Output:
+  [4, 4, 0]
+  [0, 0, 4]
+  [0, 4, 0]
+
+--- Train Pair 3 ---
+Input:
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+  [0, 0, 2, 2, 0, 0, 0, 0, 0, 0]
+  [0, 2, 0, 2, 0, 0, 0, 0, 0, 0]
+  [0, 0, 2, 0, 0, 0, 0, 5, 0, 0]
+  [0, 0, 0, 0, 0, 0, 0, 2, 2, 0]
+  [0, 0, 0, 0, 0, 0, 2, 2, 0, 0]
+  [0, 0, 0, 0, 0, 0, 0, 2, 0, 0]
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+Output:
+  [0, 2, 2]
+  [2, 2, 0]
+  [0, 2, 0]
+
+--- Test Input ---
+Input:
+  [0, 0, 0, 0, 0, 0, 5, 0, 0, 0]
+  [0, 0, 0, 0, 0, 0, 3, 0, 0, 0]
+  [0, 0, 0, 0, 0, 3, 3, 0, 0, 0]
+  [0, 0, 0, 0, 0, 0, 3, 3, 0, 0]
+  [0, 0, 3, 0, 0, 0, 0, 0, 0, 0]
+  [0, 3, 3, 0, 0, 0, 0, 0, 0, 0]
+  [0, 0, 3, 0, 0, 0, 3, 0, 0, 0]
+  [0, 0, 0, 0, 0, 3, 3, 3, 0, 0]
+  [0, 0, 0, 0, 0, 0, 3, 3, 0, 0]
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+
+Your goal: produce the correct output grid for this test input.
+
+=== AVAILABLE DSL FUNCTIONS ===
+  matcher(function, target)  --  construction of equality function
+  subgrid(patch, grid)  --  smallest subgrid containing object
+  objects(grid, univalued, diagonal, without_bg)  --  objects occurring on the grid
+  vmirror(piece)  --  mirroring along vertical
+  center(patch)  --  center of the patch
+  index(grid, loc)  --  color at location
+  lowermost(patch)  --  row index of lowermost occupied cell
+  lbind(function, fixed)  --  fix the leftmost argument
+  extract(container, condition)  --  first element of container that satisfies condition
+  corners(patch)  --  indices of corners
+  greater(a, b)  --  greater
+  shift(patch, directions)  --  shift patch
+  dedupe(tup)  --  remove duplicates
+  hmatching(a, b)  --  whether there exists a row for which both patches have cells
+  replace(grid, replacee, replacer)  --  color substitution
+
+=== AVAILABLE CONSTANTS ===
+  ONE=1, T=True
+
+=== CURRENT VARIABLES ===
+  I = <test input grid shown above>
+
+Write the next DSL call:
+--- END INITIAL OBSERVATION ---
+
+
+--- PLANNING ROUND ---
+O = subgrid(objects(I, univalued=True, diagonal=True, without_bg=True)[0], I)
+--- END PLANNING ---
+
+  Step  1 | O = subgrid(objects(I, univalued=True, diagonal=True, without_bg=True)[1], I)
+    exec: OK: O assigned
+  >>> SOLVED at step 1! (9/9 cells)
+
+============================================================
+RESULT: SOLVED
+Final match: 9/9 cells
+Steps used: 1/20
+GT steps: 6

@@ -1,0 +1,2273 @@
+
+============================================================
+PUZZLE: b6afb2da  |  GT steps: 7  |  GT DSLs: 5  |  Distractors: 10  |  Total DSLs shown: 15
+============================================================
+
+GT DSL functions (5):
+  [GT] colorfilter(objs, value)  --  filter objects by color
+  [GT] fill(grid, value, patch)  --  fill value at indices
+  [GT] mapply(function, container)  --  apply and merge
+  [GT] objects(grid, univalued, diagonal, without_bg)  --  objects occurring on the grid
+  [GT] replace(grid, replacee, replacer)  --  color substitution
+
+Distractor DSL functions (10):
+  [DISTRACTOR] argmin(container, compfunc)  --  smallest item by custom order
+  [DISTRACTOR] connect(a, b)  --  line between two points
+  [DISTRACTOR] hline(patch)  --  whether the piece forms a horizontal line
+  [DISTRACTOR] lbind(function, fixed)  --  fix the leftmost argument
+  [DISTRACTOR] leftmost(patch)  --  column index of leftmost occupied cell
+  [DISTRACTOR] lowermost(patch)  --  row index of lowermost occupied cell
+  [DISTRACTOR] portrait(piece)  --  whether height is greater than width
+  [DISTRACTOR] prapply(function, a, b)  --  apply function on cartesian product
+  [DISTRACTOR] ulcorner(patch)  --  index of upper left corner
+  [DISTRACTOR] valmin(container, compfunc)  --  minimum by custom function
+
+Display order shown to agent:
+  [GT] mapply
+  [DISTRACTOR] connect
+  [DISTRACTOR] leftmost
+  [DISTRACTOR] lbind
+  [DISTRACTOR] argmin
+  [GT] fill
+  [DISTRACTOR] ulcorner
+  [DISTRACTOR] valmin
+  [GT] colorfilter
+  [DISTRACTOR] portrait
+  [DISTRACTOR] lowermost
+  [GT] replace
+  [DISTRACTOR] hline
+  [GT] objects
+  [DISTRACTOR] prapply
+
+
+--- INITIAL OBSERVATION ---
+=== ARC-AGI PUZZLE ===
+TRAINING EXAMPLES:
+
+--- Train Pair 1 ---
+Input:
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+  [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+  [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+  [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+  [0, 5, 5, 5, 5, 0, 5, 5, 5, 5]
+  [0, 0, 0, 0, 0, 0, 5, 5, 5, 5]
+  [0, 0, 0, 0, 0, 0, 5, 5, 5, 5]
+  [0, 0, 0, 0, 0, 0, 5, 5, 5, 5]
+  [0, 0, 0, 0, 0, 0, 5, 5, 5, 5]
+Output:
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+  [0, 1, 4, 4, 1, 0, 0, 0, 0, 0]
+  [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+  [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+  [0, 1, 4, 4, 1, 0, 1, 4, 4, 1]
+  [0, 0, 0, 0, 0, 0, 4, 2, 2, 4]
+  [0, 0, 0, 0, 0, 0, 4, 2, 2, 4]
+  [0, 0, 0, 0, 0, 0, 4, 2, 2, 4]
+  [0, 0, 0, 0, 0, 0, 1, 4, 4, 1]
+
+--- Train Pair 2 ---
+Input:
+  [5, 5, 5, 5, 5, 5, 0, 0, 0, 0]
+  [5, 5, 5, 5, 5, 5, 0, 0, 0, 0]
+  [5, 5, 5, 5, 5, 5, 0, 0, 0, 0]
+  [5, 5, 5, 5, 5, 5, 0, 0, 0, 0]
+  [5, 5, 5, 5, 5, 5, 0, 0, 0, 0]
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+  [0, 0, 0, 0, 5, 5, 5, 5, 5, 5]
+  [0, 0, 0, 0, 5, 5, 5, 5, 5, 5]
+  [0, 0, 0, 0, 5, 5, 5, 5, 5, 5]
+  [0, 0, 0, 0, 5, 5, 5, 5, 5, 5]
+Output:
+  [1, 4, 4, 4, 4, 1, 0, 0, 0, 0]
+  [4, 2, 2, 2, 2, 4, 0, 0, 0, 0]
+  [4, 2, 2, 2, 2, 4, 0, 0, 0, 0]
+  [4, 2, 2, 2, 2, 4, 0, 0, 0, 0]
+  [1, 4, 4, 4, 4, 1, 0, 0, 0, 0]
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+  [0, 0, 0, 0, 1, 4, 4, 4, 4, 1]
+  [0, 0, 0, 0, 4, 2, 2, 2, 2, 4]
+  [0, 0, 0, 0, 4, 2, 2, 2, 2, 4]
+  [0, 0, 0, 0, 1, 4, 4, 4, 4, 1]
+
+--- Test Input ---
+Input:
+  [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+  [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+  [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+  [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+  [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+  [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+  [0, 0, 0, 0, 5, 5, 5, 5, 5, 5]
+  [0, 0, 0, 0, 5, 5, 5, 5, 5, 5]
+  [0, 0, 0, 0, 5, 5, 5, 5, 5, 5]
+
+Your goal: produce the correct output grid for this test input.
+
+=== AVAILABLE DSL FUNCTIONS ===
+  mapply(function, container)  --  apply and merge
+  connect(a, b)  --  line between two points
+  leftmost(patch)  --  column index of leftmost occupied cell
+  lbind(function, fixed)  --  fix the leftmost argument
+  argmin(container, compfunc)  --  smallest item by custom order
+  fill(grid, value, patch)  --  fill value at indices
+  ulcorner(patch)  --  index of upper left corner
+  valmin(container, compfunc)  --  minimum by custom function
+  colorfilter(objs, value)  --  filter objects by color
+  portrait(piece)  --  whether height is greater than width
+  lowermost(patch)  --  row index of lowermost occupied cell
+  replace(grid, replacee, replacer)  --  color substitution
+  hline(patch)  --  whether the piece forms a horizontal line
+  objects(grid, univalued, diagonal, without_bg)  --  objects occurring on the grid
+  prapply(function, a, b)  --  apply function on cartesian product
+
+=== AVAILABLE CONSTANTS ===
+  F=False, FIVE=5, FOUR=4, ONE=1, T=True, TWO=2
+
+=== CURRENT VARIABLES ===
+  I = <test input grid shown above>
+
+Write the next DSL call:
+--- END INITIAL OBSERVATION ---
+
+
+--- PLANNING ROUND ---
+**1. Observed transformation**
+
+Each contiguous region of the colour 5 (a solid rectangle or square) is replaced by a three‑tone “frame”:
+
+* the four corner cells become colour 1,
+* the remaining border cells become colour 4,
+* all interior cells become colour 2.
+
+The background (colour 0) stays unchanged.  
+Equivalently, for every cell that was 5 we look at how many of its eight neighbours were also 5:  
+‑ 8 neighbours → interior → 2  
+‑ 5 neighbours → edge (non‑corner) → 4  
+‑ 3 neighbours → corner → 1  
+
+The two training examples show this rule for a 4×4 square and for a 5×6 rectangle; the test input contains two rectangles of different sizes, so the same rule must be applied to each of them.
+
+**2. How to implement with the DSL**
+
+* `replace(grid, FIVE, TWO)` – turn every original 5 into the interior colour 2 (the default for all cells of the region).  
+* For each rectangle we draw its four sides with colour 4 using `connect` to obtain a line‑patch and `fill` to colour it.  
+* Finally we overwrite the four corner cells with colour 1 using `fill` on a tiny patch that contains the corner coordinates.
+
+The needed corner coordinates and side endpoints can be read directly from the input because the rectangles are axis‑aligned; we can obtain them manually (or by using `ulcorner` / `lowermost` together with the known width/height, but manual specification is simpler for this test case).
+
+**3. Step‑by‑step plan**
+
+1. `x1 = replace(I, FIVE, TWO)` – set the whole 5‑region to colour 2.  
+2. Draw the four edges of the left rectangle (rows 0‑5, cols 1‑4) with colour 4:
+   * top edge: `fill(x1, FOUR, connect((0,1),(0,4)))`
+   * bottom edge: `fill(..., connect((5,1),(5,4)))`
+   * left edge: `fill(..., connect((0,1),(5,1)))`
+   * right edge: `fill(..., connect((0,4),(5,4)))`
+3. Draw the four edges of the right rectangle (rows 7‑9, cols 4‑9) in the same way.  
+4. Overwrite the eight corner cells with colour 1 using a single `fill` call that receives a patch consisting of the eight corner coordinate pairs.  
+5. Assign the resulting grid to `O`.
+
+Following this plan will produce the required output grid for the test input.
+--- END PLANNING ---
+
+  Step  1 | x1 = replace(I, FIVE, TWO)
+    exec: OK: x1 assigned
+    --- feedback obs (step 1) ---
+Executed: x1 = replace(I, FIVE, TWO)
+Result: OK: x1 assigned
+
+=== CURRENT VARIABLES ===
+  I = <10x10 grid>
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 5, 5, 5, 5, 5, 5]
+    [0, 0, 0, 0, 5, 5, 5, 5, 5, 5]
+    [0, 0, 0, 0, 5, 5, 5, 5, 5, 5]
+  x1 = <10x10 grid>
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+
+Available DSL functions:
+  mapply(function, container)  --  apply and merge
+  connect(a, b)  --  line between two points
+  leftmost(patch)  --  column index of leftmost occupied cell
+  lbind(function, fixed)  --  fix the leftmost argument
+  argmin(container, compfunc)  --  smallest item by custom order
+  fill(grid, value, patch)  --  fill value at indices
+  ulcorner(patch)  --  index of upper left corner
+  valmin(container, compfunc)  --  minimum by custom function
+  colorfilter(objs, value)  --  filter objects by color
+  portrait(piece)  --  whether height is greater than width
+  lowermost(patch)  --  row index of lowermost occupied cell
+  replace(grid, replacee, replacer)  --  color substitution
+  hline(patch)  --  whether the piece forms a horizontal line
+  objects(grid, univalued, diagonal, without_bg)  --  objects occurring on the grid
+  prapply(function, a, b)  --  apply function on cartesian product
+
+Write the next DSL call:
+  Step  2 | x2 = fill(x1, FOUR, connect((0,1),(0,4)))
+    exec: OK: x2 assigned
+    --- feedback obs (step 2) ---
+Executed: x2 = fill(x1, FOUR, connect((0,1),(0,4)))
+Result: OK: x2 assigned
+
+=== CURRENT VARIABLES ===
+  I = <10x10 grid>
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 5, 5, 5, 5, 5, 5]
+    [0, 0, 0, 0, 5, 5, 5, 5, 5, 5]
+    [0, 0, 0, 0, 5, 5, 5, 5, 5, 5]
+  x1 = <10x10 grid>
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+  x2 = <10x10 grid>
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+
+Available DSL functions:
+  mapply(function, container)  --  apply and merge
+  connect(a, b)  --  line between two points
+  leftmost(patch)  --  column index of leftmost occupied cell
+  lbind(function, fixed)  --  fix the leftmost argument
+  argmin(container, compfunc)  --  smallest item by custom order
+  fill(grid, value, patch)  --  fill value at indices
+  ulcorner(patch)  --  index of upper left corner
+  valmin(container, compfunc)  --  minimum by custom function
+  colorfilter(objs, value)  --  filter objects by color
+  portrait(piece)  --  whether height is greater than width
+  lowermost(patch)  --  row index of lowermost occupied cell
+  replace(grid, replacee, replacer)  --  color substitution
+  hline(patch)  --  whether the piece forms a horizontal line
+  objects(grid, univalued, diagonal, without_bg)  --  objects occurring on the grid
+  prapply(function, a, b)  --  apply function on cartesian product
+
+Write the next DSL call:
+  Step  3 | x3 = fill(x2, FOUR, connect((5,1),(5,4)))
+    exec: OK: x3 assigned
+    --- feedback obs (step 3) ---
+Executed: x3 = fill(x2, FOUR, connect((5,1),(5,4)))
+Result: OK: x3 assigned
+
+=== CURRENT VARIABLES ===
+  I = <10x10 grid>
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 5, 5, 5, 5, 5, 5]
+    [0, 0, 0, 0, 5, 5, 5, 5, 5, 5]
+    [0, 0, 0, 0, 5, 5, 5, 5, 5, 5]
+  x1 = <10x10 grid>
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+  x2 = <10x10 grid>
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+  x3 = <10x10 grid>
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+
+Available DSL functions:
+  mapply(function, container)  --  apply and merge
+  connect(a, b)  --  line between two points
+  leftmost(patch)  --  column index of leftmost occupied cell
+  lbind(function, fixed)  --  fix the leftmost argument
+  argmin(container, compfunc)  --  smallest item by custom order
+  fill(grid, value, patch)  --  fill value at indices
+  ulcorner(patch)  --  index of upper left corner
+  valmin(container, compfunc)  --  minimum by custom function
+  colorfilter(objs, value)  --  filter objects by color
+  portrait(piece)  --  whether height is greater than width
+  lowermost(patch)  --  row index of lowermost occupied cell
+  replace(grid, replacee, replacer)  --  color substitution
+  hline(patch)  --  whether the piece forms a horizontal line
+  objects(grid, univalued, diagonal, without_bg)  --  objects occurring on the grid
+  prapply(function, a, b)  --  apply function on cartesian product
+
+Write the next DSL call:
+  Step  4 | x4 = fill(x3, FOUR, connect((0,1),(5,1)))
+    exec: OK: x4 assigned
+    --- feedback obs (step 4) ---
+Executed: x4 = fill(x3, FOUR, connect((0,1),(5,1)))
+Result: OK: x4 assigned
+
+=== CURRENT VARIABLES ===
+  I = <10x10 grid>
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 5, 5, 5, 5, 5, 5]
+    [0, 0, 0, 0, 5, 5, 5, 5, 5, 5]
+    [0, 0, 0, 0, 5, 5, 5, 5, 5, 5]
+  x1 = <10x10 grid>
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+  x2 = <10x10 grid>
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+  x3 = <10x10 grid>
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+  x4 = <10x10 grid>
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+
+Available DSL functions:
+  mapply(function, container)  --  apply and merge
+  connect(a, b)  --  line between two points
+  leftmost(patch)  --  column index of leftmost occupied cell
+  lbind(function, fixed)  --  fix the leftmost argument
+  argmin(container, compfunc)  --  smallest item by custom order
+  fill(grid, value, patch)  --  fill value at indices
+  ulcorner(patch)  --  index of upper left corner
+  valmin(container, compfunc)  --  minimum by custom function
+  colorfilter(objs, value)  --  filter objects by color
+  portrait(piece)  --  whether height is greater than width
+  lowermost(patch)  --  row index of lowermost occupied cell
+  replace(grid, replacee, replacer)  --  color substitution
+  hline(patch)  --  whether the piece forms a horizontal line
+  objects(grid, univalued, diagonal, without_bg)  --  objects occurring on the grid
+  prapply(function, a, b)  --  apply function on cartesian product
+
+Write the next DSL call:
+  Step  5 | x5 = fill(x4, FOUR, connect((0,4),(5,4)))
+    exec: OK: x5 assigned
+    --- feedback obs (step 5) ---
+Executed: x5 = fill(x4, FOUR, connect((0,4),(5,4)))
+Result: OK: x5 assigned
+
+=== CURRENT VARIABLES ===
+  I = <10x10 grid>
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 5, 5, 5, 5, 5, 5]
+    [0, 0, 0, 0, 5, 5, 5, 5, 5, 5]
+    [0, 0, 0, 0, 5, 5, 5, 5, 5, 5]
+  x1 = <10x10 grid>
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+  x2 = <10x10 grid>
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+  x3 = <10x10 grid>
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+  x4 = <10x10 grid>
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+  x5 = <10x10 grid>
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+
+Available DSL functions:
+  mapply(function, container)  --  apply and merge
+  connect(a, b)  --  line between two points
+  leftmost(patch)  --  column index of leftmost occupied cell
+  lbind(function, fixed)  --  fix the leftmost argument
+  argmin(container, compfunc)  --  smallest item by custom order
+  fill(grid, value, patch)  --  fill value at indices
+  ulcorner(patch)  --  index of upper left corner
+  valmin(container, compfunc)  --  minimum by custom function
+  colorfilter(objs, value)  --  filter objects by color
+  portrait(piece)  --  whether height is greater than width
+  lowermost(patch)  --  row index of lowermost occupied cell
+  replace(grid, replacee, replacer)  --  color substitution
+  hline(patch)  --  whether the piece forms a horizontal line
+  objects(grid, univalued, diagonal, without_bg)  --  objects occurring on the grid
+  prapply(function, a, b)  --  apply function on cartesian product
+
+Write the next DSL call:
+  Step  6 | x6 = fill(x5, FOUR, connect((7,4),(7,9)))
+    exec: OK: x6 assigned
+    --- feedback obs (step 6) ---
+Executed: x6 = fill(x5, FOUR, connect((7,4),(7,9)))
+Result: OK: x6 assigned
+
+=== CURRENT VARIABLES ===
+  I = <10x10 grid>
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 5, 5, 5, 5, 5, 5]
+    [0, 0, 0, 0, 5, 5, 5, 5, 5, 5]
+    [0, 0, 0, 0, 5, 5, 5, 5, 5, 5]
+  x1 = <10x10 grid>
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+  x2 = <10x10 grid>
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+  x3 = <10x10 grid>
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+  x4 = <10x10 grid>
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+  x5 = <10x10 grid>
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+  x6 = <10x10 grid>
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 4, 4, 4, 4, 4, 4]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+
+Available DSL functions:
+  mapply(function, container)  --  apply and merge
+  connect(a, b)  --  line between two points
+  leftmost(patch)  --  column index of leftmost occupied cell
+  lbind(function, fixed)  --  fix the leftmost argument
+  argmin(container, compfunc)  --  smallest item by custom order
+  fill(grid, value, patch)  --  fill value at indices
+  ulcorner(patch)  --  index of upper left corner
+  valmin(container, compfunc)  --  minimum by custom function
+  colorfilter(objs, value)  --  filter objects by color
+  portrait(piece)  --  whether height is greater than width
+  lowermost(patch)  --  row index of lowermost occupied cell
+  replace(grid, replacee, replacer)  --  color substitution
+  hline(patch)  --  whether the piece forms a horizontal line
+  objects(grid, univalued, diagonal, without_bg)  --  objects occurring on the grid
+  prapply(function, a, b)  --  apply function on cartesian product
+
+Write the next DSL call:
+  Step  7 | x7 = fill(x6, ONE, connect((0,1),(0,1)))
+    exec: OK: x7 assigned
+    --- feedback obs (step 7) ---
+Executed: x7 = fill(x6, ONE, connect((0,1),(0,1)))
+Result: OK: x7 assigned
+
+=== CURRENT VARIABLES ===
+  I = <10x10 grid>
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 5, 5, 5, 5, 5, 5]
+    [0, 0, 0, 0, 5, 5, 5, 5, 5, 5]
+    [0, 0, 0, 0, 5, 5, 5, 5, 5, 5]
+  x1 = <10x10 grid>
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+  x2 = <10x10 grid>
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+  x3 = <10x10 grid>
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+  x4 = <10x10 grid>
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+  x5 = <10x10 grid>
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+  x6 = <10x10 grid>
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 4, 4, 4, 4, 4, 4]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+  x7 = <10x10 grid>
+    [0, 1, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 4, 4, 4, 4, 4, 4]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+
+Available DSL functions:
+  mapply(function, container)  --  apply and merge
+  connect(a, b)  --  line between two points
+  leftmost(patch)  --  column index of leftmost occupied cell
+  lbind(function, fixed)  --  fix the leftmost argument
+  argmin(container, compfunc)  --  smallest item by custom order
+  fill(grid, value, patch)  --  fill value at indices
+  ulcorner(patch)  --  index of upper left corner
+  valmin(container, compfunc)  --  minimum by custom function
+  colorfilter(objs, value)  --  filter objects by color
+  portrait(piece)  --  whether height is greater than width
+  lowermost(patch)  --  row index of lowermost occupied cell
+  replace(grid, replacee, replacer)  --  color substitution
+  hline(patch)  --  whether the piece forms a horizontal line
+  objects(grid, univalued, diagonal, without_bg)  --  objects occurring on the grid
+  prapply(function, a, b)  --  apply function on cartesian product
+
+Write the next DSL call:
+  Step  8 | x8 = fill(x7, FOUR, connect((7,4),(9,4)))
+    exec: OK: x8 assigned
+    --- feedback obs (step 8) ---
+Executed: x8 = fill(x7, FOUR, connect((7,4),(9,4)))
+Result: OK: x8 assigned
+
+=== CURRENT VARIABLES ===
+  I = <10x10 grid>
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 5, 5, 5, 5, 5, 5]
+    [0, 0, 0, 0, 5, 5, 5, 5, 5, 5]
+    [0, 0, 0, 0, 5, 5, 5, 5, 5, 5]
+  x1 = <10x10 grid>
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+  x2 = <10x10 grid>
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+  x3 = <10x10 grid>
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+  x4 = <10x10 grid>
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+  x5 = <10x10 grid>
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+  x6 = <10x10 grid>
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 4, 4, 4, 4, 4, 4]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+  x7 = <10x10 grid>
+    [0, 1, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 4, 4, 4, 4, 4, 4]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+  x8 = <10x10 grid>
+    [0, 1, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 4, 4, 4, 4, 4, 4]
+    [0, 0, 0, 0, 4, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 4, 2, 2, 2, 2, 2]
+
+Available DSL functions:
+  mapply(function, container)  --  apply and merge
+  connect(a, b)  --  line between two points
+  leftmost(patch)  --  column index of leftmost occupied cell
+  lbind(function, fixed)  --  fix the leftmost argument
+  argmin(container, compfunc)  --  smallest item by custom order
+  fill(grid, value, patch)  --  fill value at indices
+  ulcorner(patch)  --  index of upper left corner
+  valmin(container, compfunc)  --  minimum by custom function
+  colorfilter(objs, value)  --  filter objects by color
+  portrait(piece)  --  whether height is greater than width
+  lowermost(patch)  --  row index of lowermost occupied cell
+  replace(grid, replacee, replacer)  --  color substitution
+  hline(patch)  --  whether the piece forms a horizontal line
+  objects(grid, univalued, diagonal, without_bg)  --  objects occurring on the grid
+  prapply(function, a, b)  --  apply function on cartesian product
+
+Write the next DSL call:
+  Step  9 | x9 = fill(x8, FOUR, connect((9,4),(9,9)))
+    exec: OK: x9 assigned
+    --- feedback obs (step 9) ---
+Executed: x9 = fill(x8, FOUR, connect((9,4),(9,9)))
+Result: OK: x9 assigned
+
+=== CURRENT VARIABLES ===
+  I = <10x10 grid>
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 5, 5, 5, 5, 5, 5]
+    [0, 0, 0, 0, 5, 5, 5, 5, 5, 5]
+    [0, 0, 0, 0, 5, 5, 5, 5, 5, 5]
+  x1 = <10x10 grid>
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+  x2 = <10x10 grid>
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+  x3 = <10x10 grid>
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+  x4 = <10x10 grid>
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+  x5 = <10x10 grid>
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+  x6 = <10x10 grid>
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 4, 4, 4, 4, 4, 4]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+  x7 = <10x10 grid>
+    [0, 1, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 4, 4, 4, 4, 4, 4]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+  x8 = <10x10 grid>
+    [0, 1, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 4, 4, 4, 4, 4, 4]
+    [0, 0, 0, 0, 4, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 4, 2, 2, 2, 2, 2]
+  x9 = <10x10 grid>
+    [0, 1, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 4, 4, 4, 4, 4, 4]
+    [0, 0, 0, 0, 4, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 4, 4, 4, 4, 4, 4]
+
+Available DSL functions:
+  mapply(function, container)  --  apply and merge
+  connect(a, b)  --  line between two points
+  leftmost(patch)  --  column index of leftmost occupied cell
+  lbind(function, fixed)  --  fix the leftmost argument
+  argmin(container, compfunc)  --  smallest item by custom order
+  fill(grid, value, patch)  --  fill value at indices
+  ulcorner(patch)  --  index of upper left corner
+  valmin(container, compfunc)  --  minimum by custom function
+  colorfilter(objs, value)  --  filter objects by color
+  portrait(piece)  --  whether height is greater than width
+  lowermost(patch)  --  row index of lowermost occupied cell
+  replace(grid, replacee, replacer)  --  color substitution
+  hline(patch)  --  whether the piece forms a horizontal line
+  objects(grid, univalued, diagonal, without_bg)  --  objects occurring on the grid
+  prapply(function, a, b)  --  apply function on cartesian product
+
+Write the next DSL call:
+  Step 10 | x10 = fill(x9, ONE, connect((0,4),(0,4)))
+    exec: OK: x10 assigned
+    --- feedback obs (step 10) ---
+Executed: x10 = fill(x9, ONE, connect((0,4),(0,4)))
+Result: OK: x10 assigned
+
+=== CURRENT VARIABLES ===
+  I = <10x10 grid>
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 5, 5, 5, 5, 5, 5]
+    [0, 0, 0, 0, 5, 5, 5, 5, 5, 5]
+    [0, 0, 0, 0, 5, 5, 5, 5, 5, 5]
+  x1 = <10x10 grid>
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+  x2 = <10x10 grid>
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+  x3 = <10x10 grid>
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+  x4 = <10x10 grid>
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+  x5 = <10x10 grid>
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+  x6 = <10x10 grid>
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 4, 4, 4, 4, 4, 4]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+  x7 = <10x10 grid>
+    [0, 1, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 4, 4, 4, 4, 4, 4]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+  x8 = <10x10 grid>
+    [0, 1, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 4, 4, 4, 4, 4, 4]
+    [0, 0, 0, 0, 4, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 4, 2, 2, 2, 2, 2]
+  x9 = <10x10 grid>
+    [0, 1, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 4, 4, 4, 4, 4, 4]
+    [0, 0, 0, 0, 4, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 4, 4, 4, 4, 4, 4]
+  x10 = <10x10 grid>
+    [0, 1, 4, 4, 1, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 4, 4, 4, 4, 4, 4]
+    [0, 0, 0, 0, 4, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 4, 4, 4, 4, 4, 4]
+
+Available DSL functions:
+  mapply(function, container)  --  apply and merge
+  connect(a, b)  --  line between two points
+  leftmost(patch)  --  column index of leftmost occupied cell
+  lbind(function, fixed)  --  fix the leftmost argument
+  argmin(container, compfunc)  --  smallest item by custom order
+  fill(grid, value, patch)  --  fill value at indices
+  ulcorner(patch)  --  index of upper left corner
+  valmin(container, compfunc)  --  minimum by custom function
+  colorfilter(objs, value)  --  filter objects by color
+  portrait(piece)  --  whether height is greater than width
+  lowermost(patch)  --  row index of lowermost occupied cell
+  replace(grid, replacee, replacer)  --  color substitution
+  hline(patch)  --  whether the piece forms a horizontal line
+  objects(grid, univalued, diagonal, without_bg)  --  objects occurring on the grid
+  prapply(function, a, b)  --  apply function on cartesian product
+
+Write the next DSL call:
+  Step 11 | x11 = fill(x10, FOUR, connect((7,9),(9,9)))
+    exec: OK: x11 assigned
+    --- feedback obs (step 11) ---
+Executed: x11 = fill(x10, FOUR, connect((7,9),(9,9)))
+Result: OK: x11 assigned
+
+=== CURRENT VARIABLES ===
+  I = <10x10 grid>
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 5, 5, 5, 5, 5, 5]
+    [0, 0, 0, 0, 5, 5, 5, 5, 5, 5]
+    [0, 0, 0, 0, 5, 5, 5, 5, 5, 5]
+  x1 = <10x10 grid>
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+  x2 = <10x10 grid>
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+  x3 = <10x10 grid>
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+  x4 = <10x10 grid>
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+  x5 = <10x10 grid>
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+  x6 = <10x10 grid>
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 4, 4, 4, 4, 4, 4]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+  x7 = <10x10 grid>
+    [0, 1, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 4, 4, 4, 4, 4, 4]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+  x8 = <10x10 grid>
+    [0, 1, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 4, 4, 4, 4, 4, 4]
+    [0, 0, 0, 0, 4, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 4, 2, 2, 2, 2, 2]
+  x9 = <10x10 grid>
+    [0, 1, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 4, 4, 4, 4, 4, 4]
+    [0, 0, 0, 0, 4, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 4, 4, 4, 4, 4, 4]
+  x10 = <10x10 grid>
+    [0, 1, 4, 4, 1, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 4, 4, 4, 4, 4, 4]
+    [0, 0, 0, 0, 4, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 4, 4, 4, 4, 4, 4]
+  x11 = <10x10 grid>
+    [0, 1, 4, 4, 1, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 4, 4, 4, 4, 4, 4]
+    [0, 0, 0, 0, 4, 2, 2, 2, 2, 4]
+    [0, 0, 0, 0, 4, 4, 4, 4, 4, 4]
+
+Available DSL functions:
+  mapply(function, container)  --  apply and merge
+  connect(a, b)  --  line between two points
+  leftmost(patch)  --  column index of leftmost occupied cell
+  lbind(function, fixed)  --  fix the leftmost argument
+  argmin(container, compfunc)  --  smallest item by custom order
+  fill(grid, value, patch)  --  fill value at indices
+  ulcorner(patch)  --  index of upper left corner
+  valmin(container, compfunc)  --  minimum by custom function
+  colorfilter(objs, value)  --  filter objects by color
+  portrait(piece)  --  whether height is greater than width
+  lowermost(patch)  --  row index of lowermost occupied cell
+  replace(grid, replacee, replacer)  --  color substitution
+  hline(patch)  --  whether the piece forms a horizontal line
+  objects(grid, univalued, diagonal, without_bg)  --  objects occurring on the grid
+  prapply(function, a, b)  --  apply function on cartesian product
+
+Write the next DSL call:
+  Step 12 | x12 = fill(x11, ONE, connect((5,1),(5,1)))
+    exec: OK: x12 assigned
+    --- feedback obs (step 12) ---
+Executed: x12 = fill(x11, ONE, connect((5,1),(5,1)))
+Result: OK: x12 assigned
+
+=== CURRENT VARIABLES ===
+  I = <10x10 grid>
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 5, 5, 5, 5, 5, 5]
+    [0, 0, 0, 0, 5, 5, 5, 5, 5, 5]
+    [0, 0, 0, 0, 5, 5, 5, 5, 5, 5]
+  x1 = <10x10 grid>
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+  x2 = <10x10 grid>
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+  x3 = <10x10 grid>
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+  x4 = <10x10 grid>
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+  x5 = <10x10 grid>
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+  x6 = <10x10 grid>
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 4, 4, 4, 4, 4, 4]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+  x7 = <10x10 grid>
+    [0, 1, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 4, 4, 4, 4, 4, 4]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+  x8 = <10x10 grid>
+    [0, 1, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 4, 4, 4, 4, 4, 4]
+    [0, 0, 0, 0, 4, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 4, 2, 2, 2, 2, 2]
+  x9 = <10x10 grid>
+    [0, 1, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 4, 4, 4, 4, 4, 4]
+    [0, 0, 0, 0, 4, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 4, 4, 4, 4, 4, 4]
+  x10 = <10x10 grid>
+    [0, 1, 4, 4, 1, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 4, 4, 4, 4, 4, 4]
+    [0, 0, 0, 0, 4, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 4, 4, 4, 4, 4, 4]
+  x11 = <10x10 grid>
+    [0, 1, 4, 4, 1, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 4, 4, 4, 4, 4, 4]
+    [0, 0, 0, 0, 4, 2, 2, 2, 2, 4]
+    [0, 0, 0, 0, 4, 4, 4, 4, 4, 4]
+  x12 = <10x10 grid>
+    [0, 1, 4, 4, 1, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 1, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 4, 4, 4, 4, 4, 4]
+    [0, 0, 0, 0, 4, 2, 2, 2, 2, 4]
+    [0, 0, 0, 0, 4, 4, 4, 4, 4, 4]
+
+Available DSL functions:
+  mapply(function, container)  --  apply and merge
+  connect(a, b)  --  line between two points
+  leftmost(patch)  --  column index of leftmost occupied cell
+  lbind(function, fixed)  --  fix the leftmost argument
+  argmin(container, compfunc)  --  smallest item by custom order
+  fill(grid, value, patch)  --  fill value at indices
+  ulcorner(patch)  --  index of upper left corner
+  valmin(container, compfunc)  --  minimum by custom function
+  colorfilter(objs, value)  --  filter objects by color
+  portrait(piece)  --  whether height is greater than width
+  lowermost(patch)  --  row index of lowermost occupied cell
+  replace(grid, replacee, replacer)  --  color substitution
+  hline(patch)  --  whether the piece forms a horizontal line
+  objects(grid, univalued, diagonal, without_bg)  --  objects occurring on the grid
+  prapply(function, a, b)  --  apply function on cartesian product
+
+Write the next DSL call:
+  Step 13 | x13 = fill(x12, ONE, connect((5,4),(5,4)))
+    exec: OK: x13 assigned
+    --- feedback obs (step 13) ---
+Executed: x13 = fill(x12, ONE, connect((5,4),(5,4)))
+Result: OK: x13 assigned
+
+=== CURRENT VARIABLES ===
+  I = <10x10 grid>
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 5, 5, 5, 5, 5, 5]
+    [0, 0, 0, 0, 5, 5, 5, 5, 5, 5]
+    [0, 0, 0, 0, 5, 5, 5, 5, 5, 5]
+  x1 = <10x10 grid>
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+  x2 = <10x10 grid>
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+  x3 = <10x10 grid>
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+  x4 = <10x10 grid>
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+  x5 = <10x10 grid>
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+  x6 = <10x10 grid>
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 4, 4, 4, 4, 4, 4]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+  x7 = <10x10 grid>
+    [0, 1, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 4, 4, 4, 4, 4, 4]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+  x8 = <10x10 grid>
+    [0, 1, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 4, 4, 4, 4, 4, 4]
+    [0, 0, 0, 0, 4, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 4, 2, 2, 2, 2, 2]
+  x9 = <10x10 grid>
+    [0, 1, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 4, 4, 4, 4, 4, 4]
+    [0, 0, 0, 0, 4, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 4, 4, 4, 4, 4, 4]
+  x10 = <10x10 grid>
+    [0, 1, 4, 4, 1, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 4, 4, 4, 4, 4, 4]
+    [0, 0, 0, 0, 4, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 4, 4, 4, 4, 4, 4]
+  x11 = <10x10 grid>
+    [0, 1, 4, 4, 1, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 4, 4, 4, 4, 4, 4]
+    [0, 0, 0, 0, 4, 2, 2, 2, 2, 4]
+    [0, 0, 0, 0, 4, 4, 4, 4, 4, 4]
+  x12 = <10x10 grid>
+    [0, 1, 4, 4, 1, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 1, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 4, 4, 4, 4, 4, 4]
+    [0, 0, 0, 0, 4, 2, 2, 2, 2, 4]
+    [0, 0, 0, 0, 4, 4, 4, 4, 4, 4]
+  x13 = <10x10 grid>
+    [0, 1, 4, 4, 1, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 1, 4, 4, 1, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 4, 4, 4, 4, 4, 4]
+    [0, 0, 0, 0, 4, 2, 2, 2, 2, 4]
+    [0, 0, 0, 0, 4, 4, 4, 4, 4, 4]
+
+Available DSL functions:
+  mapply(function, container)  --  apply and merge
+  connect(a, b)  --  line between two points
+  leftmost(patch)  --  column index of leftmost occupied cell
+  lbind(function, fixed)  --  fix the leftmost argument
+  argmin(container, compfunc)  --  smallest item by custom order
+  fill(grid, value, patch)  --  fill value at indices
+  ulcorner(patch)  --  index of upper left corner
+  valmin(container, compfunc)  --  minimum by custom function
+  colorfilter(objs, value)  --  filter objects by color
+  portrait(piece)  --  whether height is greater than width
+  lowermost(patch)  --  row index of lowermost occupied cell
+  replace(grid, replacee, replacer)  --  color substitution
+  hline(patch)  --  whether the piece forms a horizontal line
+  objects(grid, univalued, diagonal, without_bg)  --  objects occurring on the grid
+  prapply(function, a, b)  --  apply function on cartesian product
+
+Write the next DSL call:
+  Step 14 | x14 = fill(x13, ONE, connect((7,4),(7,4)))
+    exec: OK: x14 assigned
+    --- feedback obs (step 14) ---
+Executed: x14 = fill(x13, ONE, connect((7,4),(7,4)))
+Result: OK: x14 assigned
+
+=== CURRENT VARIABLES ===
+  I = <10x10 grid>
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 5, 5, 5, 5, 5, 5]
+    [0, 0, 0, 0, 5, 5, 5, 5, 5, 5]
+    [0, 0, 0, 0, 5, 5, 5, 5, 5, 5]
+  x1 = <10x10 grid>
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+  x2 = <10x10 grid>
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+  x3 = <10x10 grid>
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+  x4 = <10x10 grid>
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+  x5 = <10x10 grid>
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+  x6 = <10x10 grid>
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 4, 4, 4, 4, 4, 4]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+  x7 = <10x10 grid>
+    [0, 1, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 4, 4, 4, 4, 4, 4]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+  x8 = <10x10 grid>
+    [0, 1, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 4, 4, 4, 4, 4, 4]
+    [0, 0, 0, 0, 4, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 4, 2, 2, 2, 2, 2]
+  x9 = <10x10 grid>
+    [0, 1, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 4, 4, 4, 4, 4, 4]
+    [0, 0, 0, 0, 4, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 4, 4, 4, 4, 4, 4]
+  x10 = <10x10 grid>
+    [0, 1, 4, 4, 1, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 4, 4, 4, 4, 4, 4]
+    [0, 0, 0, 0, 4, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 4, 4, 4, 4, 4, 4]
+  x11 = <10x10 grid>
+    [0, 1, 4, 4, 1, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 4, 4, 4, 4, 4, 4]
+    [0, 0, 0, 0, 4, 2, 2, 2, 2, 4]
+    [0, 0, 0, 0, 4, 4, 4, 4, 4, 4]
+  x12 = <10x10 grid>
+    [0, 1, 4, 4, 1, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 1, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 4, 4, 4, 4, 4, 4]
+    [0, 0, 0, 0, 4, 2, 2, 2, 2, 4]
+    [0, 0, 0, 0, 4, 4, 4, 4, 4, 4]
+  x13 = <10x10 grid>
+    [0, 1, 4, 4, 1, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 1, 4, 4, 1, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 4, 4, 4, 4, 4, 4]
+    [0, 0, 0, 0, 4, 2, 2, 2, 2, 4]
+    [0, 0, 0, 0, 4, 4, 4, 4, 4, 4]
+  x14 = <10x10 grid>
+    [0, 1, 4, 4, 1, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 1, 4, 4, 1, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 1, 4, 4, 4, 4, 4]
+    [0, 0, 0, 0, 4, 2, 2, 2, 2, 4]
+    [0, 0, 0, 0, 4, 4, 4, 4, 4, 4]
+
+Available DSL functions:
+  mapply(function, container)  --  apply and merge
+  connect(a, b)  --  line between two points
+  leftmost(patch)  --  column index of leftmost occupied cell
+  lbind(function, fixed)  --  fix the leftmost argument
+  argmin(container, compfunc)  --  smallest item by custom order
+  fill(grid, value, patch)  --  fill value at indices
+  ulcorner(patch)  --  index of upper left corner
+  valmin(container, compfunc)  --  minimum by custom function
+  colorfilter(objs, value)  --  filter objects by color
+  portrait(piece)  --  whether height is greater than width
+  lowermost(patch)  --  row index of lowermost occupied cell
+  replace(grid, replacee, replacer)  --  color substitution
+  hline(patch)  --  whether the piece forms a horizontal line
+  objects(grid, univalued, diagonal, without_bg)  --  objects occurring on the grid
+  prapply(function, a, b)  --  apply function on cartesian product
+
+Write the next DSL call:
+  Step 15 | x15 = fill(x14, ONE, connect((7,9),(7,9)))
+    exec: OK: x15 assigned
+    --- feedback obs (step 15) ---
+Executed: x15 = fill(x14, ONE, connect((7,9),(7,9)))
+Result: OK: x15 assigned
+
+=== CURRENT VARIABLES ===
+  I = <10x10 grid>
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 5, 5, 5, 5, 5, 5]
+    [0, 0, 0, 0, 5, 5, 5, 5, 5, 5]
+    [0, 0, 0, 0, 5, 5, 5, 5, 5, 5]
+  x1 = <10x10 grid>
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+  x2 = <10x10 grid>
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+  x3 = <10x10 grid>
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+  x4 = <10x10 grid>
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+  x5 = <10x10 grid>
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+  x6 = <10x10 grid>
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 4, 4, 4, 4, 4, 4]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+  x7 = <10x10 grid>
+    [0, 1, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 4, 4, 4, 4, 4, 4]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+  x8 = <10x10 grid>
+    [0, 1, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 4, 4, 4, 4, 4, 4]
+    [0, 0, 0, 0, 4, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 4, 2, 2, 2, 2, 2]
+  x9 = <10x10 grid>
+    [0, 1, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 4, 4, 4, 4, 4, 4]
+    [0, 0, 0, 0, 4, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 4, 4, 4, 4, 4, 4]
+  x10 = <10x10 grid>
+    [0, 1, 4, 4, 1, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 4, 4, 4, 4, 4, 4]
+    [0, 0, 0, 0, 4, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 4, 4, 4, 4, 4, 4]
+  x11 = <10x10 grid>
+    [0, 1, 4, 4, 1, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 4, 4, 4, 4, 4, 4]
+    [0, 0, 0, 0, 4, 2, 2, 2, 2, 4]
+    [0, 0, 0, 0, 4, 4, 4, 4, 4, 4]
+  x12 = <10x10 grid>
+    [0, 1, 4, 4, 1, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 1, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 4, 4, 4, 4, 4, 4]
+    [0, 0, 0, 0, 4, 2, 2, 2, 2, 4]
+    [0, 0, 0, 0, 4, 4, 4, 4, 4, 4]
+  x13 = <10x10 grid>
+    [0, 1, 4, 4, 1, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 1, 4, 4, 1, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 4, 4, 4, 4, 4, 4]
+    [0, 0, 0, 0, 4, 2, 2, 2, 2, 4]
+    [0, 0, 0, 0, 4, 4, 4, 4, 4, 4]
+  x14 = <10x10 grid>
+    [0, 1, 4, 4, 1, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 1, 4, 4, 1, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 1, 4, 4, 4, 4, 4]
+    [0, 0, 0, 0, 4, 2, 2, 2, 2, 4]
+    [0, 0, 0, 0, 4, 4, 4, 4, 4, 4]
+  x15 = <10x10 grid>
+    [0, 1, 4, 4, 1, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 1, 4, 4, 1, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 1, 4, 4, 4, 4, 1]
+    [0, 0, 0, 0, 4, 2, 2, 2, 2, 4]
+    [0, 0, 0, 0, 4, 4, 4, 4, 4, 4]
+
+Available DSL functions:
+  mapply(function, container)  --  apply and merge
+  connect(a, b)  --  line between two points
+  leftmost(patch)  --  column index of leftmost occupied cell
+  lbind(function, fixed)  --  fix the leftmost argument
+  argmin(container, compfunc)  --  smallest item by custom order
+  fill(grid, value, patch)  --  fill value at indices
+  ulcorner(patch)  --  index of upper left corner
+  valmin(container, compfunc)  --  minimum by custom function
+  colorfilter(objs, value)  --  filter objects by color
+  portrait(piece)  --  whether height is greater than width
+  lowermost(patch)  --  row index of lowermost occupied cell
+  replace(grid, replacee, replacer)  --  color substitution
+  hline(patch)  --  whether the piece forms a horizontal line
+  objects(grid, univalued, diagonal, without_bg)  --  objects occurring on the grid
+  prapply(function, a, b)  --  apply function on cartesian product
+
+Write the next DSL call:
+  Step 16 | x16 = fill(x15, ONE, connect((9,4),(9,4)))
+    exec: OK: x16 assigned
+    --- feedback obs (step 16) ---
+Executed: x16 = fill(x15, ONE, connect((9,4),(9,4)))
+Result: OK: x16 assigned
+
+=== CURRENT VARIABLES ===
+  I = <10x10 grid>
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 5, 5, 5, 5, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 5, 5, 5, 5, 5, 5]
+    [0, 0, 0, 0, 5, 5, 5, 5, 5, 5]
+    [0, 0, 0, 0, 5, 5, 5, 5, 5, 5]
+  x1 = <10x10 grid>
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+  x2 = <10x10 grid>
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+  x3 = <10x10 grid>
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 2, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+  x4 = <10x10 grid>
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 2, 0, 0, 0, 0, 0]
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+  x5 = <10x10 grid>
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+  x6 = <10x10 grid>
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 4, 4, 4, 4, 4, 4]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+  x7 = <10x10 grid>
+    [0, 1, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 4, 4, 4, 4, 4, 4]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 2, 2, 2, 2, 2, 2]
+  x8 = <10x10 grid>
+    [0, 1, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 4, 4, 4, 4, 4, 4]
+    [0, 0, 0, 0, 4, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 4, 2, 2, 2, 2, 2]
+  x9 = <10x10 grid>
+    [0, 1, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 4, 4, 4, 4, 4, 4]
+    [0, 0, 0, 0, 4, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 4, 4, 4, 4, 4, 4]
+  x10 = <10x10 grid>
+    [0, 1, 4, 4, 1, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 4, 4, 4, 4, 4, 4]
+    [0, 0, 0, 0, 4, 2, 2, 2, 2, 2]
+    [0, 0, 0, 0, 4, 4, 4, 4, 4, 4]
+  x11 = <10x10 grid>
+    [0, 1, 4, 4, 1, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 4, 4, 4, 4, 4, 4]
+    [0, 0, 0, 0, 4, 2, 2, 2, 2, 4]
+    [0, 0, 0, 0, 4, 4, 4, 4, 4, 4]
+  x12 = <10x10 grid>
+    [0, 1, 4, 4, 1, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 1, 4, 4, 4, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 4, 4, 4, 4, 4, 4]
+    [0, 0, 0, 0, 4, 2, 2, 2, 2, 4]
+    [0, 0, 0, 0, 4, 4, 4, 4, 4, 4]
+  x13 = <10x10 grid>
+    [0, 1, 4, 4, 1, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 1, 4, 4, 1, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 4, 4, 4, 4, 4, 4]
+    [0, 0, 0, 0, 4, 2, 2, 2, 2, 4]
+    [0, 0, 0, 0, 4, 4, 4, 4, 4, 4]
+  x14 = <10x10 grid>
+    [0, 1, 4, 4, 1, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 1, 4, 4, 1, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 1, 4, 4, 4, 4, 4]
+    [0, 0, 0, 0, 4, 2, 2, 2, 2, 4]
+    [0, 0, 0, 0, 4, 4, 4, 4, 4, 4]
+  x15 = <10x10 grid>
+    [0, 1, 4, 4, 1, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 1, 4, 4, 1, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 1, 4, 4, 4, 4, 1]
+    [0, 0, 0, 0, 4, 2, 2, 2, 2, 4]
+    [0, 0, 0, 0, 4, 4, 4, 4, 4, 4]
+  x16 = <10x10 grid>
+    [0, 1, 4, 4, 1, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 4, 2, 2, 4, 0, 0, 0, 0, 0]
+    [0, 1, 4, 4, 1, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 1, 4, 4, 4, 4, 1]
+    [0, 0, 0, 0, 4, 2, 2, 2, 2, 4]
+    [0, 0, 0, 0, 1, 4, 4, 4, 4, 4]
+
+Available DSL functions:
+  mapply(function, container)  --  apply and merge
+  connect(a, b)  --  line between two points
+  leftmost(patch)  --  column index of leftmost occupied cell
+  lbind(function, fixed)  --  fix the leftmost argument
+  argmin(container, compfunc)  --  smallest item by custom order
+  fill(grid, value, patch)  --  fill value at indices
+  ulcorner(patch)  --  index of upper left corner
+  valmin(container, compfunc)  --  minimum by custom function
+  colorfilter(objs, value)  --  filter objects by color
+  portrait(piece)  --  whether height is greater than width
+  lowermost(patch)  --  row index of lowermost occupied cell
+  replace(grid, replacee, replacer)  --  color substitution
+  hline(patch)  --  whether the piece forms a horizontal line
+  objects(grid, univalued, diagonal, without_bg)  --  objects occurring on the grid
+  prapply(function, a, b)  --  apply function on cartesian product
+
+Write the next DSL call:
+  Step 17 | O = fill(x16, ONE, connect((9,9),(9,9)))
+    exec: OK: O assigned
+  >>> SOLVED at step 17! (100/100 cells)
+
+============================================================
+RESULT: SOLVED
+Final match: 100/100 cells
+Steps used: 17/20
+GT steps: 7
