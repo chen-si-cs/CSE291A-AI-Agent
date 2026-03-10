@@ -1,0 +1,598 @@
+
+============================================================
+PUZZLE: d037b0a7  |  GT steps: 6  |  GT DSLs: 6  |  Distractors: 5  |  Total DSLs shown: 11
+============================================================
+
+GT DSL functions (6):
+  [GT] compose(outer, inner)  --  function composition
+  [GT] fork(outer, a, b)  --  creates a wrapper function
+  [GT] mapply(function, container)  --  apply and merge
+  [GT] objects(grid, univalued, diagonal, without_bg)  --  objects occurring on the grid
+  [GT] paint(grid, obj)  --  paint object to grid
+  [GT] rbind(function, fixed)  --  fix the rightmost argument
+
+Distractor DSL functions (5):
+  [DISTRACTOR] colorfilter(objs, value)  --  filter objects by color
+  [DISTRACTOR] other(container, value)  --  other value in the container
+  [DISTRACTOR] palette(element)  --  colors occurring in object or grid
+  [DISTRACTOR] valmax(container, compfunc)  --  maximum by custom function
+  [DISTRACTOR] vmirror(piece)  --  mirroring along vertical
+
+Display order shown to agent:
+  [GT] fork
+  [GT] rbind
+  [DISTRACTOR] valmax
+  [DISTRACTOR] palette
+  [GT] compose
+  [GT] mapply
+  [GT] paint
+  [DISTRACTOR] other
+  [DISTRACTOR] colorfilter
+  [DISTRACTOR] vmirror
+  [GT] objects
+
+
+--- INITIAL OBSERVATION ---
+=== ARC-AGI PUZZLE ===
+TRAINING EXAMPLES:
+
+--- Train Pair 1 ---
+Input:
+  [0, 0, 6]
+  [0, 4, 0]
+  [3, 0, 0]
+Output:
+  [0, 0, 6]
+  [0, 4, 6]
+  [3, 4, 6]
+
+--- Train Pair 2 ---
+Input:
+  [0, 2, 0]
+  [7, 0, 8]
+  [0, 0, 0]
+Output:
+  [0, 2, 0]
+  [7, 2, 8]
+  [7, 2, 8]
+
+--- Train Pair 3 ---
+Input:
+  [4, 0, 0]
+  [0, 2, 0]
+  [0, 0, 0]
+Output:
+  [4, 0, 0]
+  [4, 2, 0]
+  [4, 2, 0]
+
+--- Test Input ---
+Input:
+  [4, 0, 8]
+  [0, 0, 0]
+  [0, 7, 0]
+
+Your goal: produce the correct output grid for this test input.
+
+=== AVAILABLE DSL FUNCTIONS ===
+  fork(outer, a, b)  --  creates a wrapper function
+  rbind(function, fixed)  --  fix the rightmost argument
+  valmax(container, compfunc)  --  maximum by custom function
+  palette(element)  --  colors occurring in object or grid
+  compose(outer, inner)  --  function composition
+  mapply(function, container)  --  apply and merge
+  paint(grid, obj)  --  paint object to grid
+  other(container, value)  --  other value in the container
+  colorfilter(objs, value)  --  filter objects by color
+  vmirror(piece)  --  mirroring along vertical
+  objects(grid, univalued, diagonal, without_bg)  --  objects occurring on the grid
+
+=== AVAILABLE CONSTANTS ===
+  DOWN=(1, 0), F=False, T=True
+
+=== CURRENT VARIABLES ===
+  I = <test input grid shown above>
+
+Write the next DSL call:
+--- END INITIAL OBSERVATION ---
+
+
+--- PLANNING ROUND ---
+ Let me analyze the training pairs to understand the pattern.
+
+**Train Pair 1:**
+- Input has 6 at (0,2), 4 at (1,1), 3 at (2,0)
+- Output: Each non-zero value propagates down in its column
+  - Column 0: 3 stays at row 2, fills up to row 2
+  - Column 1: 4 at row 1, fills down to row 2
+  - Column 2: 6 at row 0, fills down to rows 1 and 2
+
+**Train Pair 2:**
+- Input has 2 at (0,1), 7 at (1,0), 8 at (1,2)
+- Output: Each non-zero value propagates down in its column
+  - Column 0: 7 at row 1, fills down to row 2
+  - Column 1: 2 at row 0, fills down to rows 1 and 2
+  - Column 2: 8 at row 1, fills down to row 2
+
+**Train Pair 3:**
+- Input has 4 at (0,0), 2 at (1,1)
+- Output: Each non-zero value propagates down in its column
+  - Column 0: 4 at row 0, fills down to rows 1 and 2
+  - Column 1: 2 at row 1, fills down to row 2
+
+**Pattern:** For each column, find the non-zero value (if any), then fill that value down from its position to the bottom of the grid.
+
+**Step-by-step plan:**
+1. Get objects from the input grid
+2. For each column, find the non-zero value and its position
+3. Fill that value downward in the column
+
+Looking at available DSL functions, I need to:
+- Use `objects` to get the non-zero elements
+- Use `paint` to place objects on the grid
+- I need to create downward-extended objects for each column
+
+Let me start by extracting objects from the input grid. </think> x1 = objects(I, T, F, T)
+--- END PLANNING ---
+
+  Step  1 | x2 = palette(I)
+    exec: OK: x2 assigned
+    --- feedback obs (step 1) ---
+Executed: x2 = palette(I)
+Result: OK: x2 assigned
+
+=== CURRENT VARIABLES ===
+  I = <3x3 grid>
+    [4, 0, 8]
+    [0, 0, 0]
+    [0, 7, 0]
+  x2 = frozenset({0, 8, 4, 7})
+
+Available DSL functions:
+  fork(outer, a, b)  --  creates a wrapper function
+  rbind(function, fixed)  --  fix the rightmost argument
+  valmax(container, compfunc)  --  maximum by custom function
+  palette(element)  --  colors occurring in object or grid
+  compose(outer, inner)  --  function composition
+  mapply(function, container)  --  apply and merge
+  paint(grid, obj)  --  paint object to grid
+  other(container, value)  --  other value in the container
+  colorfilter(objs, value)  --  filter objects by color
+  vmirror(piece)  --  mirroring along vertical
+  objects(grid, univalued, diagonal, without_bg)  --  objects occurring on the grid
+
+Write the next DSL call:
+  Step  2 | x3 = other(x2, 0)
+    exec: OK: x3 assigned
+    --- feedback obs (step 2) ---
+Executed: x3 = other(x2, 0)
+Result: OK: x3 assigned
+
+=== CURRENT VARIABLES ===
+  I = <3x3 grid>
+    [4, 0, 8]
+    [0, 0, 0]
+    [0, 7, 0]
+  x2 = frozenset({0, 8, 4, 7})
+  x3 = 8
+
+Available DSL functions:
+  fork(outer, a, b)  --  creates a wrapper function
+  rbind(function, fixed)  --  fix the rightmost argument
+  valmax(container, compfunc)  --  maximum by custom function
+  palette(element)  --  colors occurring in object or grid
+  compose(outer, inner)  --  function composition
+  mapply(function, container)  --  apply and merge
+  paint(grid, obj)  --  paint object to grid
+  other(container, value)  --  other value in the container
+  colorfilter(objs, value)  --  filter objects by color
+  vmirror(piece)  --  mirroring along vertical
+  objects(grid, univalued, diagonal, without_bg)  --  objects occurring on the grid
+
+Write the next DSL call:
+  Step  3 | Hmm, `other` only returns one value, but I need all non-zero colors. Let me work with the objects directly instead. Let me filter objects by each color. First, let me get the objects again and work with them.
+    exec: Invalid format (no assignment): Hmm, `other` only returns one value, but I need all non-zero colors. Let me work with the objects directly instead. Let me filter objects by each color. First, let me get the objects again and work with them.
+    --- feedback obs (step 3) ---
+ERROR executing: Hmm, `other` only returns one value, but I need all non-zero colors. Let me work with the objects directly instead. Let me filter objects by each color. First, let me get the objects again and work with them.
+Error: Invalid format (no assignment): Hmm, `other` only returns one value, but I need all non-zero colors. Let me work with the objects directly instead. Let me filter objects by each color. First, let me get the objects again and work with them.
+Please try again with a valid DSL call.
+
+=== CURRENT VARIABLES ===
+  I = <3x3 grid>
+    [4, 0, 8]
+    [0, 0, 0]
+    [0, 7, 0]
+  x2 = frozenset({0, 8, 4, 7})
+  x3 = 8
+
+Available DSL functions:
+  fork(outer, a, b)  --  creates a wrapper function
+  rbind(function, fixed)  --  fix the rightmost argument
+  valmax(container, compfunc)  --  maximum by custom function
+  palette(element)  --  colors occurring in object or grid
+  compose(outer, inner)  --  function composition
+  mapply(function, container)  --  apply and merge
+  paint(grid, obj)  --  paint object to grid
+  other(container, value)  --  other value in the container
+  colorfilter(objs, value)  --  filter objects by color
+  vmirror(piece)  --  mirroring along vertical
+  objects(grid, univalued, diagonal, without_bg)  --  objects occurring on the grid
+
+Write the next DSL call:
+  Step  4 | x4 = colorfilter(x1, 4)
+    exec: Execution error: NameError: name 'x1' is not defined
+    --- feedback obs (step 4) ---
+ERROR executing: x4 = colorfilter(x1, 4)
+Error: Execution error: NameError: name 'x1' is not defined
+Please try again with a valid DSL call.
+
+=== CURRENT VARIABLES ===
+  I = <3x3 grid>
+    [4, 0, 8]
+    [0, 0, 0]
+    [0, 7, 0]
+  x2 = frozenset({0, 8, 4, 7})
+  x3 = 8
+
+Available DSL functions:
+  fork(outer, a, b)  --  creates a wrapper function
+  rbind(function, fixed)  --  fix the rightmost argument
+  valmax(container, compfunc)  --  maximum by custom function
+  palette(element)  --  colors occurring in object or grid
+  compose(outer, inner)  --  function composition
+  mapply(function, container)  --  apply and merge
+  paint(grid, obj)  --  paint object to grid
+  other(container, value)  --  other value in the container
+  colorfilter(objs, value)  --  filter objects by color
+  vmirror(piece)  --  mirroring along vertical
+  objects(grid, univalued, diagonal, without_bg)  --  objects occurring on the grid
+
+Write the next DSL call:
+  Step  5 | x1 = objects(I, T, F, T)
+    exec: OK: x1 assigned
+    --- feedback obs (step 5) ---
+Executed: x1 = objects(I, T, F, T)
+Result: OK: x1 assigned
+
+=== CURRENT VARIABLES ===
+  I = <3x3 grid>
+    [4, 0, 8]
+    [0, 0, 0]
+    [0, 7, 0]
+  x2 = frozenset({0, 8, 4, 7})
+  x3 = 8
+  x1 = frozenset({frozenset({(4, (0, 0))}), frozenset({(8, (0, 2))}), frozenset({(7, (2, 1))})})
+
+Available DSL functions:
+  fork(outer, a, b)  --  creates a wrapper function
+  rbind(function, fixed)  --  fix the rightmost argument
+  valmax(container, compfunc)  --  maximum by custom function
+  palette(element)  --  colors occurring in object or grid
+  compose(outer, inner)  --  function composition
+  mapply(function, container)  --  apply and merge
+  paint(grid, obj)  --  paint object to grid
+  other(container, value)  --  other value in the container
+  colorfilter(objs, value)  --  filter objects by color
+  vmirror(piece)  --  mirroring along vertical
+  objects(grid, univalued, diagonal, without_bg)  --  objects occurring on the grid
+
+Write the next DSL call:
+  Step  6 | x4 = colorfilter(x1, 4)
+    exec: OK: x4 assigned
+    --- feedback obs (step 6) ---
+Executed: x4 = colorfilter(x1, 4)
+Result: OK: x4 assigned
+
+=== CURRENT VARIABLES ===
+  I = <3x3 grid>
+    [4, 0, 8]
+    [0, 0, 0]
+    [0, 7, 0]
+  x2 = frozenset({0, 8, 4, 7})
+  x3 = 8
+  x1 = frozenset({frozenset({(4, (0, 0))}), frozenset({(8, (0, 2))}), frozenset({(7, (2, 1))})})
+  x4 = frozenset({frozenset({(4, (0, 0))})})
+
+Available DSL functions:
+  fork(outer, a, b)  --  creates a wrapper function
+  rbind(function, fixed)  --  fix the rightmost argument
+  valmax(container, compfunc)  --  maximum by custom function
+  palette(element)  --  colors occurring in object or grid
+  compose(outer, inner)  --  function composition
+  mapply(function, container)  --  apply and merge
+  paint(grid, obj)  --  paint object to grid
+  other(container, value)  --  other value in the container
+  colorfilter(objs, value)  --  filter objects by color
+  vmirror(piece)  --  mirroring along vertical
+  objects(grid, univalued, diagonal, without_bg)  --  objects occurring on the grid
+
+Write the next DSL call:
+  Step  7 | x5 = colorfilter(x1, 8)
+    exec: OK: x5 assigned
+    --- feedback obs (step 7) ---
+Executed: x5 = colorfilter(x1, 8)
+Result: OK: x5 assigned
+
+=== CURRENT VARIABLES ===
+  I = <3x3 grid>
+    [4, 0, 8]
+    [0, 0, 0]
+    [0, 7, 0]
+  x2 = frozenset({0, 8, 4, 7})
+  x3 = 8
+  x1 = frozenset({frozenset({(4, (0, 0))}), frozenset({(8, (0, 2))}), frozenset({(7, (2, 1))})})
+  x4 = frozenset({frozenset({(4, (0, 0))})})
+  x5 = frozenset({frozenset({(8, (0, 2))})})
+
+Available DSL functions:
+  fork(outer, a, b)  --  creates a wrapper function
+  rbind(function, fixed)  --  fix the rightmost argument
+  valmax(container, compfunc)  --  maximum by custom function
+  palette(element)  --  colors occurring in object or grid
+  compose(outer, inner)  --  function composition
+  mapply(function, container)  --  apply and merge
+  paint(grid, obj)  --  paint object to grid
+  other(container, value)  --  other value in the container
+  colorfilter(objs, value)  --  filter objects by color
+  vmirror(piece)  --  mirroring along vertical
+  objects(grid, univalued, diagonal, without_bg)  --  objects occurring on the grid
+
+Write the next DSL call:
+  Step  8 | x6 = colorfilter(x1, 7)
+    exec: OK: x6 assigned
+    --- feedback obs (step 8) ---
+Executed: x6 = colorfilter(x1, 7)
+Result: OK: x6 assigned
+
+=== CURRENT VARIABLES ===
+  I = <3x3 grid>
+    [4, 0, 8]
+    [0, 0, 0]
+    [0, 7, 0]
+  x2 = frozenset({0, 8, 4, 7})
+  x3 = 8
+  x1 = frozenset({frozenset({(4, (0, 0))}), frozenset({(8, (0, 2))}), frozenset({(7, (2, 1))})})
+  x4 = frozenset({frozenset({(4, (0, 0))})})
+  x5 = frozenset({frozenset({(8, (0, 2))})})
+  x6 = frozenset({frozenset({(7, (2, 1))})})
+
+Available DSL functions:
+  fork(outer, a, b)  --  creates a wrapper function
+  rbind(function, fixed)  --  fix the rightmost argument
+  valmax(container, compfunc)  --  maximum by custom function
+  palette(element)  --  colors occurring in object or grid
+  compose(outer, inner)  --  function composition
+  mapply(function, container)  --  apply and merge
+  paint(grid, obj)  --  paint object to grid
+  other(container, value)  --  other value in the container
+  colorfilter(objs, value)  --  filter objects by color
+  vmirror(piece)  --  mirroring along vertical
+  objects(grid, univalued, diagonal, without_bg)  --  objects occurring on the grid
+
+Write the next DSL call:
+  Step  9 | Now I need to create extended objects that fill downward in each column. Looking at the pattern:
+    exec: Invalid format (no assignment): Now I need to create extended objects that fill downward in each column. Looking at the pattern:
+    --- feedback obs (step 9) ---
+ERROR executing: Now I need to create extended objects that fill downward in each column. Looking at the pattern:
+Error: Invalid format (no assignment): Now I need to create extended objects that fill downward in each column. Looking at the pattern:
+Please try again with a valid DSL call.
+
+=== CURRENT VARIABLES ===
+  I = <3x3 grid>
+    [4, 0, 8]
+    [0, 0, 0]
+    [0, 7, 0]
+  x2 = frozenset({0, 8, 4, 7})
+  x3 = 8
+  x1 = frozenset({frozenset({(4, (0, 0))}), frozenset({(8, (0, 2))}), frozenset({(7, (2, 1))})})
+  x4 = frozenset({frozenset({(4, (0, 0))})})
+  x5 = frozenset({frozenset({(8, (0, 2))})})
+  x6 = frozenset({frozenset({(7, (2, 1))})})
+
+Available DSL functions:
+  fork(outer, a, b)  --  creates a wrapper function
+  rbind(function, fixed)  --  fix the rightmost argument
+  valmax(container, compfunc)  --  maximum by custom function
+  palette(element)  --  colors occurring in object or grid
+  compose(outer, inner)  --  function composition
+  mapply(function, container)  --  apply and merge
+  paint(grid, obj)  --  paint object to grid
+  other(container, value)  --  other value in the container
+  colorfilter(objs, value)  --  filter objects by color
+  vmirror(piece)  --  mirroring along vertical
+  objects(grid, univalued, diagonal, without_bg)  --  objects occurring on the grid
+
+Write the next DSL call:
+  Step 10 | x7 = frozenset({(4, (0, 0)), (4, (1, 0)), (4, (2, 0))})
+    exec: OK: x7 assigned
+    --- feedback obs (step 10) ---
+Executed: x7 = frozenset({(4, (0, 0)), (4, (1, 0)), (4, (2, 0))})
+Result: OK: x7 assigned
+
+=== CURRENT VARIABLES ===
+  I = <3x3 grid>
+    [4, 0, 8]
+    [0, 0, 0]
+    [0, 7, 0]
+  x2 = frozenset({0, 8, 4, 7})
+  x3 = 8
+  x1 = frozenset({frozenset({(4, (0, 0))}), frozenset({(8, (0, 2))}), frozenset({(7, (2, 1))})})
+  x4 = frozenset({frozenset({(4, (0, 0))})})
+  x5 = frozenset({frozenset({(8, (0, 2))})})
+  x6 = frozenset({frozenset({(7, (2, 1))})})
+  x7 = frozenset({(4, (1, 0)), (4, (2, 0)), (4, (0, 0))})
+
+Available DSL functions:
+  fork(outer, a, b)  --  creates a wrapper function
+  rbind(function, fixed)  --  fix the rightmost argument
+  valmax(container, compfunc)  --  maximum by custom function
+  palette(element)  --  colors occurring in object or grid
+  compose(outer, inner)  --  function composition
+  mapply(function, container)  --  apply and merge
+  paint(grid, obj)  --  paint object to grid
+  other(container, value)  --  other value in the container
+  colorfilter(objs, value)  --  filter objects by color
+  vmirror(piece)  --  mirroring along vertical
+  objects(grid, univalued, diagonal, without_bg)  --  objects occurring on the grid
+
+Write the next DSL call:
+  Step 11 | x8 = frozenset({(8, (0, 2)), (8, (1, 2)), (8, (2, 2))})
+    exec: OK: x8 assigned
+    --- feedback obs (step 11) ---
+Executed: x8 = frozenset({(8, (0, 2)), (8, (1, 2)), (8, (2, 2))})
+Result: OK: x8 assigned
+
+=== CURRENT VARIABLES ===
+  I = <3x3 grid>
+    [4, 0, 8]
+    [0, 0, 0]
+    [0, 7, 0]
+  x2 = frozenset({0, 8, 4, 7})
+  x3 = 8
+  x1 = frozenset({frozenset({(4, (0, 0))}), frozenset({(8, (0, 2))}), frozenset({(7, (2, 1))})})
+  x4 = frozenset({frozenset({(4, (0, 0))})})
+  x5 = frozenset({frozenset({(8, (0, 2))})})
+  x6 = frozenset({frozenset({(7, (2, 1))})})
+  x7 = frozenset({(4, (1, 0)), (4, (2, 0)), (4, (0, 0))})
+  x8 = frozenset({(8, (2, 2)), (8, (0, 2)), (8, (1, 2))})
+
+Available DSL functions:
+  fork(outer, a, b)  --  creates a wrapper function
+  rbind(function, fixed)  --  fix the rightmost argument
+  valmax(container, compfunc)  --  maximum by custom function
+  palette(element)  --  colors occurring in object or grid
+  compose(outer, inner)  --  function composition
+  mapply(function, container)  --  apply and merge
+  paint(grid, obj)  --  paint object to grid
+  other(container, value)  --  other value in the container
+  colorfilter(objs, value)  --  filter objects by color
+  vmirror(piece)  --  mirroring along vertical
+  objects(grid, univalued, diagonal, without_bg)  --  objects occurring on the grid
+
+Write the next DSL call:
+  Step 12 | x9 = frozenset({(7, (2, 1))})
+    exec: OK: x9 assigned
+    --- feedback obs (step 12) ---
+Executed: x9 = frozenset({(7, (2, 1))})
+Result: OK: x9 assigned
+
+=== CURRENT VARIABLES ===
+  I = <3x3 grid>
+    [4, 0, 8]
+    [0, 0, 0]
+    [0, 7, 0]
+  x2 = frozenset({0, 8, 4, 7})
+  x3 = 8
+  x1 = frozenset({frozenset({(4, (0, 0))}), frozenset({(8, (0, 2))}), frozenset({(7, (2, 1))})})
+  x4 = frozenset({frozenset({(4, (0, 0))})})
+  x5 = frozenset({frozenset({(8, (0, 2))})})
+  x6 = frozenset({frozenset({(7, (2, 1))})})
+  x7 = frozenset({(4, (1, 0)), (4, (2, 0)), (4, (0, 0))})
+  x8 = frozenset({(8, (2, 2)), (8, (0, 2)), (8, (1, 2))})
+  x9 = frozenset({(7, (2, 1))})
+
+Available DSL functions:
+  fork(outer, a, b)  --  creates a wrapper function
+  rbind(function, fixed)  --  fix the rightmost argument
+  valmax(container, compfunc)  --  maximum by custom function
+  palette(element)  --  colors occurring in object or grid
+  compose(outer, inner)  --  function composition
+  mapply(function, container)  --  apply and merge
+  paint(grid, obj)  --  paint object to grid
+  other(container, value)  --  other value in the container
+  colorfilter(objs, value)  --  filter objects by color
+  vmirror(piece)  --  mirroring along vertical
+  objects(grid, univalued, diagonal, without_bg)  --  objects occurring on the grid
+
+Write the next DSL call:
+  Step 13 | x10 = paint(I, x7)
+    exec: OK: x10 assigned
+    --- feedback obs (step 13) ---
+Executed: x10 = paint(I, x7)
+Result: OK: x10 assigned
+
+=== CURRENT VARIABLES ===
+  I = <3x3 grid>
+    [4, 0, 8]
+    [0, 0, 0]
+    [0, 7, 0]
+  x2 = frozenset({0, 8, 4, 7})
+  x3 = 8
+  x1 = frozenset({frozenset({(4, (0, 0))}), frozenset({(8, (0, 2))}), frozenset({(7, (2, 1))})})
+  x4 = frozenset({frozenset({(4, (0, 0))})})
+  x5 = frozenset({frozenset({(8, (0, 2))})})
+  x6 = frozenset({frozenset({(7, (2, 1))})})
+  x7 = frozenset({(4, (1, 0)), (4, (2, 0)), (4, (0, 0))})
+  x8 = frozenset({(8, (2, 2)), (8, (0, 2)), (8, (1, 2))})
+  x9 = frozenset({(7, (2, 1))})
+  x10 = <3x3 grid>
+    [4, 0, 8]
+    [4, 0, 0]
+    [4, 7, 0]
+
+Available DSL functions:
+  fork(outer, a, b)  --  creates a wrapper function
+  rbind(function, fixed)  --  fix the rightmost argument
+  valmax(container, compfunc)  --  maximum by custom function
+  palette(element)  --  colors occurring in object or grid
+  compose(outer, inner)  --  function composition
+  mapply(function, container)  --  apply and merge
+  paint(grid, obj)  --  paint object to grid
+  other(container, value)  --  other value in the container
+  colorfilter(objs, value)  --  filter objects by color
+  vmirror(piece)  --  mirroring along vertical
+  objects(grid, univalued, diagonal, without_bg)  --  objects occurring on the grid
+
+Write the next DSL call:
+  Step 14 | x11 = paint(x10, x8)
+    exec: OK: x11 assigned
+    --- feedback obs (step 14) ---
+Executed: x11 = paint(x10, x8)
+Result: OK: x11 assigned
+
+=== CURRENT VARIABLES ===
+  I = <3x3 grid>
+    [4, 0, 8]
+    [0, 0, 0]
+    [0, 7, 0]
+  x2 = frozenset({0, 8, 4, 7})
+  x3 = 8
+  x1 = frozenset({frozenset({(4, (0, 0))}), frozenset({(8, (0, 2))}), frozenset({(7, (2, 1))})})
+  x4 = frozenset({frozenset({(4, (0, 0))})})
+  x5 = frozenset({frozenset({(8, (0, 2))})})
+  x6 = frozenset({frozenset({(7, (2, 1))})})
+  x7 = frozenset({(4, (1, 0)), (4, (2, 0)), (4, (0, 0))})
+  x8 = frozenset({(8, (2, 2)), (8, (0, 2)), (8, (1, 2))})
+  x9 = frozenset({(7, (2, 1))})
+  x10 = <3x3 grid>
+    [4, 0, 8]
+    [4, 0, 0]
+    [4, 7, 0]
+  x11 = <3x3 grid>
+    [4, 0, 8]
+    [4, 0, 8]
+    [4, 7, 8]
+
+Available DSL functions:
+  fork(outer, a, b)  --  creates a wrapper function
+  rbind(function, fixed)  --  fix the rightmost argument
+  valmax(container, compfunc)  --  maximum by custom function
+  palette(element)  --  colors occurring in object or grid
+  compose(outer, inner)  --  function composition
+  mapply(function, container)  --  apply and merge
+  paint(grid, obj)  --  paint object to grid
+  other(container, value)  --  other value in the container
+  colorfilter(objs, value)  --  filter objects by color
+  vmirror(piece)  --  mirroring along vertical
+  objects(grid, univalued, diagonal, without_bg)  --  objects occurring on the grid
+
+Write the next DSL call:
+  Step 15 | O = paint(x11, x9)
+    exec: OK: O assigned
+  >>> SOLVED at step 15! (9/9 cells)
+
+============================================================
+RESULT: SOLVED
+Final match: 9/9 cells
+Steps used: 15/20
+GT steps: 6

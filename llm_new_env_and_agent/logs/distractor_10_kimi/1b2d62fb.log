@@ -1,0 +1,555 @@
+
+============================================================
+PUZZLE: 1b2d62fb  |  GT steps: 7  |  GT DSLs: 6  |  Distractors: 10  |  Total DSLs shown: 16
+============================================================
+
+GT DSL functions (6):
+  [GT] fill(grid, value, patch)  --  fill value at indices
+  [GT] intersection(a, b)  --  returns the intersection of two containers
+  [GT] lefthalf(grid)  --  left half of grid
+  [GT] ofcolor(grid, value)  --  indices of all grid cells with value
+  [GT] replace(grid, replacee, replacer)  --  color substitution
+  [GT] righthalf(grid)  --  right half of grid
+
+Distractor DSL functions (10):
+  [DISTRACTOR] delta(patch)  --  indices in bounding box but not part of patch
+  [DISTRACTOR] dmirror(piece)  --  mirroring along diagonal
+  [DISTRACTOR] fork(outer, a, b)  --  creates a wrapper function
+  [DISTRACTOR] leastcolor(element)  --  least common color
+  [DISTRACTOR] matcher(function, target)  --  construction of equality function
+  [DISTRACTOR] mfilter(container, function)  --  filter and merge
+  [DISTRACTOR] position(a, b)  --  relative position between two patches
+  [DISTRACTOR] rightmost(patch)  --  column index of rightmost occupied cell
+  [DISTRACTOR] tojvec(j)  --  vector pointing horizontally
+  [DISTRACTOR] urcorner(patch)  --  index of upper right corner
+
+Display order shown to agent:
+  [GT] intersection
+  [GT] fill
+  [DISTRACTOR] matcher
+  [DISTRACTOR] leastcolor
+  [DISTRACTOR] mfilter
+  [DISTRACTOR] urcorner
+  [DISTRACTOR] rightmost
+  [GT] lefthalf
+  [GT] replace
+  [DISTRACTOR] delta
+  [GT] ofcolor
+  [GT] righthalf
+  [DISTRACTOR] position
+  [DISTRACTOR] tojvec
+  [DISTRACTOR] dmirror
+  [DISTRACTOR] fork
+
+
+--- INITIAL OBSERVATION ---
+=== ARC-AGI PUZZLE ===
+TRAINING EXAMPLES:
+
+--- Train Pair 1 ---
+Input:
+  [0, 9, 9, 1, 9, 9, 9]
+  [0, 0, 9, 1, 9, 9, 0]
+  [9, 0, 9, 1, 9, 9, 0]
+  [0, 0, 0, 1, 9, 0, 0]
+  [0, 9, 9, 1, 9, 9, 9]
+Output:
+  [0, 0, 0]
+  [0, 0, 0]
+  [0, 0, 0]
+  [0, 8, 8]
+  [0, 0, 0]
+
+--- Train Pair 2 ---
+Input:
+  [0, 0, 0, 1, 9, 0, 0]
+  [9, 0, 9, 1, 9, 9, 9]
+  [0, 9, 9, 1, 9, 9, 9]
+  [0, 0, 0, 1, 9, 9, 9]
+  [0, 9, 9, 1, 9, 9, 9]
+Output:
+  [0, 8, 8]
+  [0, 0, 0]
+  [0, 0, 0]
+  [0, 0, 0]
+  [0, 0, 0]
+
+--- Train Pair 3 ---
+Input:
+  [9, 0, 0, 1, 9, 0, 9]
+  [9, 0, 0, 1, 0, 9, 0]
+  [9, 0, 0, 1, 9, 0, 0]
+  [0, 9, 9, 1, 0, 9, 9]
+  [0, 0, 9, 1, 0, 9, 0]
+Output:
+  [0, 8, 0]
+  [0, 0, 8]
+  [0, 8, 8]
+  [8, 0, 0]
+  [8, 0, 0]
+
+--- Train Pair 4 ---
+Input:
+  [0, 9, 9, 1, 9, 0, 9]
+  [9, 0, 0, 1, 9, 0, 0]
+  [9, 9, 9, 1, 9, 9, 9]
+  [0, 9, 0, 1, 0, 0, 0]
+  [9, 0, 0, 1, 9, 0, 0]
+Output:
+  [0, 0, 0]
+  [0, 8, 8]
+  [0, 0, 0]
+  [8, 0, 8]
+  [0, 8, 8]
+
+--- Train Pair 5 ---
+Input:
+  [0, 9, 9, 1, 9, 0, 9]
+  [9, 0, 9, 1, 9, 9, 9]
+  [9, 9, 9, 1, 0, 0, 9]
+  [9, 0, 0, 1, 9, 0, 0]
+  [9, 9, 9, 1, 0, 0, 9]
+Output:
+  [0, 0, 0]
+  [0, 0, 0]
+  [0, 0, 0]
+  [0, 8, 8]
+  [0, 0, 0]
+
+--- Test Input ---
+Input:
+  [9, 9, 0, 1, 0, 9, 0]
+  [0, 9, 9, 1, 0, 0, 0]
+  [9, 9, 0, 1, 0, 9, 0]
+  [9, 9, 9, 1, 9, 0, 9]
+  [0, 9, 9, 1, 0, 9, 9]
+
+Your goal: produce the correct output grid for this test input.
+
+=== AVAILABLE DSL FUNCTIONS ===
+  intersection(a, b)  --  returns the intersection of two containers
+  fill(grid, value, patch)  --  fill value at indices
+  matcher(function, target)  --  construction of equality function
+  leastcolor(element)  --  least common color
+  mfilter(container, function)  --  filter and merge
+  urcorner(patch)  --  index of upper right corner
+  rightmost(patch)  --  column index of rightmost occupied cell
+  lefthalf(grid)  --  left half of grid
+  replace(grid, replacee, replacer)  --  color substitution
+  delta(patch)  --  indices in bounding box but not part of patch
+  ofcolor(grid, value)  --  indices of all grid cells with value
+  righthalf(grid)  --  right half of grid
+  position(a, b)  --  relative position between two patches
+  tojvec(j)  --  vector pointing horizontally
+  dmirror(piece)  --  mirroring along diagonal
+  fork(outer, a, b)  --  creates a wrapper function
+
+=== AVAILABLE CONSTANTS ===
+  EIGHT=8, NINE=9, ZERO=0
+
+=== CURRENT VARIABLES ===
+  I = <test input grid shown above>
+
+Write the next DSL call:
+--- END INITIAL OBSERVATION ---
+
+
+--- PLANNING ROUND ---
+ Looking at the training pairs, I need to analyze the pattern:
+
+1. Each input is a 5x7 grid with a vertical line of 1s at column 3 (the middle column), dividing the grid into left half (3 columns) and right half (3 columns).
+
+2. The output is always a 5x3 grid.
+
+3. Looking at the relationship: The output seems to mark where the left half and right half differ. When comparing left half vs right half at each row:
+   - If both have 9 or both have 0, output is 0
+   - If one has 9 and other has 0 (XOR), output is 8
+
+Let me verify this pattern:
+- Train 1, row 3: left=[0,0,0], right=[9,0,0] → XOR positions give [0,8,8]? No wait, let me check: 0 vs 9 (diff→8), 0 vs 0 (same→0), 0 vs 0 (same→0) = [8,0,0]? 
+
+Let me re-examine. Actually looking more carefully at row 3 of Train 1:
+Input row 3: [0, 0, 0, 1, 9, 0, 0]
+Left: [0, 0, 0], Right: [9, 0, 0]
+Output row 3: [0, 8, 8]
+
+Hmm, that's not XOR. Let me check if it's comparing 9s in left vs 0s in right or something else.
+
+Actually re-looking: The output is 8 where left has 0 AND right has 9? Or left has 9 AND right has 0?
+
+Row 3: left=[0,0,0], right=[9,0,0], output=[0,8,8]
+- pos 0: 0 vs 9 → 0
+- pos 1: 0 vs 0 → 8? No...
+
+Wait let me re-read. Output is [0, 8, 8]. Position 0 is 0, position 1 is 8, position 2 is 8.
+
+Left [0,0,0], Right [9,0,0]:
+- pos 0: 0 vs 9
+- pos 1: 0 vs 0  
+- pos 2: 0 vs 0
+
+That doesn't match. Let me check if I need to reverse right half or something.
+
+Actually, maybe it's: 8 where left has 0 and right has 9, looking at different positions?
+
+Let me try: output[i][j] = 8 if left[i][j] == 0 and right[i][2-j] == 9? (mirrored comparison)
+
+Or simpler: The output marks positions where left half has 0 AND the corresponding right half position has 9 (after some transform)?
+
+Looking at Train 2, row 0: [0,0,0,1,9,0,0] → left=[0,0,0], right=[9,0,0], output=[0,8,8]
+
+Hmm same pattern. Output is 8 at positions 1,2. Right is [9,0,0]. If we reverse right: [0,0,9]. Then 0 vs 0, 0 vs 0, 0 vs 9... still not right.
+
+Let me try: output is 8 where left == 0 AND right == 9 (no reversal):
+- pos 0: 0==0 and 9==9 → 8? But output is 0.
+
+What about: 8 where left != right AND (left==0 or right==0)?
+
+Actually let me try XOR directly: left XOR right (where 9=1, 0=0):
+[0,0,0] XOR [9,0,0] = [1,0,0] → [8,0,0]? But we have [0,8,8].
+
+Let me try reversed right: [0,0,9] XOR [0,0,0] = [0,0,1] → [0,0,8]? Still wrong.
+
+Going back: maybe I misread the output. Let me re-check Train 1 row 3 output: [0, 8, 8]
+
+Wait - could it be comparing left 9s with right 0s? i.e., 8 where left has 9 and right has 0?
+
+Train 1, row 4: [0,9,9,1,9,9,9], left=[0,9,9], right=[9,9,9], output=[0,0,0]
+- No positions where left=9 and right=0. Output all 0. ✓
+
+Train 1, row 3: left=[0,0,0], right=[9,0,0], output=[0,8,8]
+- No left=9, so this theory fails.
+
+Let me try: 8 where left=0 and right=9?
+Row 3: 0 vs 9 at pos 0 → should be 8, but output[0]=0.
+
+Hmm, let me re-examine if columns are swapped or something. Actually looking at outputs more carefully - could the output be showing where right half has 9 and left has something specific?
+
+Row 3 output [0,8,8]: 8s at positions 1,2. Right half [9,0,0] - 9 at position 0. 
+
+Unless... the right half is read right-to-left? [0,0,9] - then 9 at position 2. Still doesn't match [0,8,8].
+
+Let me try yet another approach: 8 where left[i][j] != right[i][j] and we use some priority?
+
+Actually, re-looking at Train 3 which has many 8s - this might help. Row 0: [9,0,0,1,9,0,9], left=[9,0,0], right=[9,0,9], output=[0,8,0]
+
+If 8 marks difference: [9,0,0] vs [9,0,9] differs at position 2, output has 8 at position 1. Not matching.
+
+Let me try: 8 where left has 0? Row 0 left [9,0,0] has 0 at positions 1,2. Output 8 at position 1. Partial match.
+
+Or 8 where right has 0? Right [9,0,9] has 0 at position 1. Output 8 at position 1. ✓
+
+Check row 1: [9,0,0,1,0,9,0], left=[9,0,0], right=[0,9,0], output=[0,0,8]
+Right has 0 at positions 0,2. Output 8 at position 2. Partial match (why not 0?).
+
+Hmm, position matters. Let me check if it's 8 where left=0 AND right=0? Row 0: left 0 at 1,2; right 0 at 1. Intersection at 1. Output 8 at 1. ✓
+Row 1: left 0 at 1,2; right 0 at 0,2. Intersection at 2. Output 8 at 2. ✓
+Row 3: [0,9,9,1,0,9,9], left=[0,9,9], right=[0,9,9], output=[8,0,0]
+Left 0 at 0; right 0 at 0. Intersection at 0. Output 8 at 0. ✓
+
+This seems to work! Output is 8 where both left and right have 0.
+
+Plan:
+1. Split I into left half and right half
+2. Find positions where left has 0
+3. Find positions where right has 0  
+4. Intersection gives positions for 8s
+5. Create output grid with 8s at those positions, 0 elsewhere
+
+x1 = lefthalf(I)
+x2 = righthalf(I)
+x3 = ofcolor(x1, ZERO)
+x4 = ofcolor(x2, ZERO)
+x5 = intersection(x3, x4)
+x6 = fill(x1, EIGHT, x5)
+O = replace(x6, NINE, ZERO)
+--- END PLANNING ---
+
+  Step  1 | x1 = lefthalf(I)
+    exec: OK: x1 assigned
+    --- feedback obs (step 1) ---
+Executed: x1 = lefthalf(I)
+Result: OK: x1 assigned
+
+=== CURRENT VARIABLES ===
+  I = <5x7 grid>
+    [9, 9, 0, 1, 0, 9, 0]
+    [0, 9, 9, 1, 0, 0, 0]
+    [9, 9, 0, 1, 0, 9, 0]
+    [9, 9, 9, 1, 9, 0, 9]
+    [0, 9, 9, 1, 0, 9, 9]
+  x1 = <5x3 grid>
+    [9, 9, 0]
+    [0, 9, 9]
+    [9, 9, 0]
+    [9, 9, 9]
+    [0, 9, 9]
+
+Available DSL functions:
+  intersection(a, b)  --  returns the intersection of two containers
+  fill(grid, value, patch)  --  fill value at indices
+  matcher(function, target)  --  construction of equality function
+  leastcolor(element)  --  least common color
+  mfilter(container, function)  --  filter and merge
+  urcorner(patch)  --  index of upper right corner
+  rightmost(patch)  --  column index of rightmost occupied cell
+  lefthalf(grid)  --  left half of grid
+  replace(grid, replacee, replacer)  --  color substitution
+  delta(patch)  --  indices in bounding box but not part of patch
+  ofcolor(grid, value)  --  indices of all grid cells with value
+  righthalf(grid)  --  right half of grid
+  position(a, b)  --  relative position between two patches
+  tojvec(j)  --  vector pointing horizontally
+  dmirror(piece)  --  mirroring along diagonal
+  fork(outer, a, b)  --  creates a wrapper function
+
+Write the next DSL call:
+  Step  2 | x2 = righthalf(I)
+    exec: OK: x2 assigned
+    --- feedback obs (step 2) ---
+Executed: x2 = righthalf(I)
+Result: OK: x2 assigned
+
+=== CURRENT VARIABLES ===
+  I = <5x7 grid>
+    [9, 9, 0, 1, 0, 9, 0]
+    [0, 9, 9, 1, 0, 0, 0]
+    [9, 9, 0, 1, 0, 9, 0]
+    [9, 9, 9, 1, 9, 0, 9]
+    [0, 9, 9, 1, 0, 9, 9]
+  x1 = <5x3 grid>
+    [9, 9, 0]
+    [0, 9, 9]
+    [9, 9, 0]
+    [9, 9, 9]
+    [0, 9, 9]
+  x2 = <5x3 grid>
+    [0, 9, 0]
+    [0, 0, 0]
+    [0, 9, 0]
+    [9, 0, 9]
+    [0, 9, 9]
+
+Available DSL functions:
+  intersection(a, b)  --  returns the intersection of two containers
+  fill(grid, value, patch)  --  fill value at indices
+  matcher(function, target)  --  construction of equality function
+  leastcolor(element)  --  least common color
+  mfilter(container, function)  --  filter and merge
+  urcorner(patch)  --  index of upper right corner
+  rightmost(patch)  --  column index of rightmost occupied cell
+  lefthalf(grid)  --  left half of grid
+  replace(grid, replacee, replacer)  --  color substitution
+  delta(patch)  --  indices in bounding box but not part of patch
+  ofcolor(grid, value)  --  indices of all grid cells with value
+  righthalf(grid)  --  right half of grid
+  position(a, b)  --  relative position between two patches
+  tojvec(j)  --  vector pointing horizontally
+  dmirror(piece)  --  mirroring along diagonal
+  fork(outer, a, b)  --  creates a wrapper function
+
+Write the next DSL call:
+  Step  3 | x3 = ofcolor(x1, ZERO)
+    exec: OK: x3 assigned
+    --- feedback obs (step 3) ---
+Executed: x3 = ofcolor(x1, ZERO)
+Result: OK: x3 assigned
+
+=== CURRENT VARIABLES ===
+  I = <5x7 grid>
+    [9, 9, 0, 1, 0, 9, 0]
+    [0, 9, 9, 1, 0, 0, 0]
+    [9, 9, 0, 1, 0, 9, 0]
+    [9, 9, 9, 1, 9, 0, 9]
+    [0, 9, 9, 1, 0, 9, 9]
+  x1 = <5x3 grid>
+    [9, 9, 0]
+    [0, 9, 9]
+    [9, 9, 0]
+    [9, 9, 9]
+    [0, 9, 9]
+  x2 = <5x3 grid>
+    [0, 9, 0]
+    [0, 0, 0]
+    [0, 9, 0]
+    [9, 0, 9]
+    [0, 9, 9]
+  x3 = frozenset({(1, 0), (0, 2), (4, 0), (2, 2)})
+
+Available DSL functions:
+  intersection(a, b)  --  returns the intersection of two containers
+  fill(grid, value, patch)  --  fill value at indices
+  matcher(function, target)  --  construction of equality function
+  leastcolor(element)  --  least common color
+  mfilter(container, function)  --  filter and merge
+  urcorner(patch)  --  index of upper right corner
+  rightmost(patch)  --  column index of rightmost occupied cell
+  lefthalf(grid)  --  left half of grid
+  replace(grid, replacee, replacer)  --  color substitution
+  delta(patch)  --  indices in bounding box but not part of patch
+  ofcolor(grid, value)  --  indices of all grid cells with value
+  righthalf(grid)  --  right half of grid
+  position(a, b)  --  relative position between two patches
+  tojvec(j)  --  vector pointing horizontally
+  dmirror(piece)  --  mirroring along diagonal
+  fork(outer, a, b)  --  creates a wrapper function
+
+Write the next DSL call:
+  Step  4 | x4 = ofcolor(x2, ZERO)
+    exec: OK: x4 assigned
+    --- feedback obs (step 4) ---
+Executed: x4 = ofcolor(x2, ZERO)
+Result: OK: x4 assigned
+
+=== CURRENT VARIABLES ===
+  I = <5x7 grid>
+    [9, 9, 0, 1, 0, 9, 0]
+    [0, 9, 9, 1, 0, 0, 0]
+    [9, 9, 0, 1, 0, 9, 0]
+    [9, 9, 9, 1, 9, 0, 9]
+    [0, 9, 9, 1, 0, 9, 9]
+  x1 = <5x3 grid>
+    [9, 9, 0]
+    [0, 9, 9]
+    [9, 9, 0]
+    [9, 9, 9]
+    [0, 9, 9]
+  x2 = <5x3 grid>
+    [0, 9, 0]
+    [0, 0, 0]
+    [0, 9, 0]
+    [9, 0, 9]
+    [0, 9, 9]
+  x3 = frozenset({(1, 0), (0, 2), (4, 0), (2, 2)})
+  x4 = frozenset({(1, 2), (4, 0), (0, 0), (3, 1), (1, 1), (2, 0), (0, 2), (2, 2), (1, 0)})
+
+Available DSL functions:
+  intersection(a, b)  --  returns the intersection of two containers
+  fill(grid, value, patch)  --  fill value at indices
+  matcher(function, target)  --  construction of equality function
+  leastcolor(element)  --  least common color
+  mfilter(container, function)  --  filter and merge
+  urcorner(patch)  --  index of upper right corner
+  rightmost(patch)  --  column index of rightmost occupied cell
+  lefthalf(grid)  --  left half of grid
+  replace(grid, replacee, replacer)  --  color substitution
+  delta(patch)  --  indices in bounding box but not part of patch
+  ofcolor(grid, value)  --  indices of all grid cells with value
+  righthalf(grid)  --  right half of grid
+  position(a, b)  --  relative position between two patches
+  tojvec(j)  --  vector pointing horizontally
+  dmirror(piece)  --  mirroring along diagonal
+  fork(outer, a, b)  --  creates a wrapper function
+
+Write the next DSL call:
+  Step  5 | x5 = intersection(x3, x4)
+    exec: OK: x5 assigned
+    --- feedback obs (step 5) ---
+Executed: x5 = intersection(x3, x4)
+Result: OK: x5 assigned
+
+=== CURRENT VARIABLES ===
+  I = <5x7 grid>
+    [9, 9, 0, 1, 0, 9, 0]
+    [0, 9, 9, 1, 0, 0, 0]
+    [9, 9, 0, 1, 0, 9, 0]
+    [9, 9, 9, 1, 9, 0, 9]
+    [0, 9, 9, 1, 0, 9, 9]
+  x1 = <5x3 grid>
+    [9, 9, 0]
+    [0, 9, 9]
+    [9, 9, 0]
+    [9, 9, 9]
+    [0, 9, 9]
+  x2 = <5x3 grid>
+    [0, 9, 0]
+    [0, 0, 0]
+    [0, 9, 0]
+    [9, 0, 9]
+    [0, 9, 9]
+  x3 = frozenset({(1, 0), (0, 2), (4, 0), (2, 2)})
+  x4 = frozenset({(1, 2), (4, 0), (0, 0), (3, 1), (1, 1), (2, 0), (0, 2), (2, 2), (1, 0)})
+  x5 = frozenset({(1, 0), (0, 2), (4, 0), (2, 2)})
+
+Available DSL functions:
+  intersection(a, b)  --  returns the intersection of two containers
+  fill(grid, value, patch)  --  fill value at indices
+  matcher(function, target)  --  construction of equality function
+  leastcolor(element)  --  least common color
+  mfilter(container, function)  --  filter and merge
+  urcorner(patch)  --  index of upper right corner
+  rightmost(patch)  --  column index of rightmost occupied cell
+  lefthalf(grid)  --  left half of grid
+  replace(grid, replacee, replacer)  --  color substitution
+  delta(patch)  --  indices in bounding box but not part of patch
+  ofcolor(grid, value)  --  indices of all grid cells with value
+  righthalf(grid)  --  right half of grid
+  position(a, b)  --  relative position between two patches
+  tojvec(j)  --  vector pointing horizontally
+  dmirror(piece)  --  mirroring along diagonal
+  fork(outer, a, b)  --  creates a wrapper function
+
+Write the next DSL call:
+  Step  6 | x6 = fill(x1, EIGHT, x5)
+    exec: OK: x6 assigned
+    --- feedback obs (step 6) ---
+Executed: x6 = fill(x1, EIGHT, x5)
+Result: OK: x6 assigned
+
+=== CURRENT VARIABLES ===
+  I = <5x7 grid>
+    [9, 9, 0, 1, 0, 9, 0]
+    [0, 9, 9, 1, 0, 0, 0]
+    [9, 9, 0, 1, 0, 9, 0]
+    [9, 9, 9, 1, 9, 0, 9]
+    [0, 9, 9, 1, 0, 9, 9]
+  x1 = <5x3 grid>
+    [9, 9, 0]
+    [0, 9, 9]
+    [9, 9, 0]
+    [9, 9, 9]
+    [0, 9, 9]
+  x2 = <5x3 grid>
+    [0, 9, 0]
+    [0, 0, 0]
+    [0, 9, 0]
+    [9, 0, 9]
+    [0, 9, 9]
+  x3 = frozenset({(1, 0), (0, 2), (4, 0), (2, 2)})
+  x4 = frozenset({(1, 2), (4, 0), (0, 0), (3, 1), (1, 1), (2, 0), (0, 2), (2, 2), (1, 0)})
+  x5 = frozenset({(1, 0), (0, 2), (4, 0), (2, 2)})
+  x6 = <5x3 grid>
+    [9, 9, 8]
+    [8, 9, 9]
+    [9, 9, 8]
+    [9, 9, 9]
+    [8, 9, 9]
+
+Available DSL functions:
+  intersection(a, b)  --  returns the intersection of two containers
+  fill(grid, value, patch)  --  fill value at indices
+  matcher(function, target)  --  construction of equality function
+  leastcolor(element)  --  least common color
+  mfilter(container, function)  --  filter and merge
+  urcorner(patch)  --  index of upper right corner
+  rightmost(patch)  --  column index of rightmost occupied cell
+  lefthalf(grid)  --  left half of grid
+  replace(grid, replacee, replacer)  --  color substitution
+  delta(patch)  --  indices in bounding box but not part of patch
+  ofcolor(grid, value)  --  indices of all grid cells with value
+  righthalf(grid)  --  right half of grid
+  position(a, b)  --  relative position between two patches
+  tojvec(j)  --  vector pointing horizontally
+  dmirror(piece)  --  mirroring along diagonal
+  fork(outer, a, b)  --  creates a wrapper function
+
+Write the next DSL call:
+  Step  7 | O = replace(x6, NINE, ZERO)
+    exec: OK: O assigned
+  >>> SOLVED at step 7! (15/15 cells)
+
+============================================================
+RESULT: SOLVED
+Final match: 15/15 cells
+Steps used: 7/20
+GT steps: 7
