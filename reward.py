@@ -62,12 +62,14 @@ def compute_reward(
     info["exact_match"] = is_correct
 
     if is_correct:
-        # Full reward, with small bonus for efficiency
-        efficiency_bonus = max(0, (max_steps - steps_taken) / max_steps) * 0.1
+        # Full reward, with efficiency bonus for solving quickly
+        efficiency_bonus = max(0, (max_steps - steps_taken) / max_steps) * 0.2
         reward = 1.0 + efficiency_bonus
     else:
-        # Partial credit based on accuracy
-        reward = accuracy * 0.5  # partial credit capped at 0.5
+        # Tiny partial credit — not enough to exploit by submitting I immediately.
+        # Keeping it nonzero helps distinguish "closer" from "further" submissions,
+        # but small enough that exploring is always better than early submission.
+        reward = accuracy * 0.05  # was 0.5 — caused "submit I" exploit at avg step=2
 
     info["reward"] = reward
     return (reward, is_correct, info)

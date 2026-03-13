@@ -127,7 +127,7 @@ def obs_to_state(obs: dict) -> List[float]:
     ]
     last = obs.get("last_action_result") or {}
     feats += [
-        1.0 if last.get("success", True) else 0.0,  # last action ok?
+        1.0 if last.get("action_ok", True) else 0.0,  # last action ok?
         float(last.get("total_reward", 0.0)),         # cumulative reward so far
     ]
 
@@ -314,13 +314,43 @@ def get_macro_actions(obs: dict) -> List[List[dict]]:
 
         # ── 39  Inspect last variable (gather info, no penalty) ───────────
         [{"type": "inspect", "target": lv}],
+
+        # ── 40-54  Combined transform+submit macros ───────────────────────
+        # These collapse a 2-step sequence (execute → submit) into one macro
+        # choice, giving the agent direct reward attribution for single-
+        # transform solutions.  Critical for REINFORCE: without these, the
+        # agent must learn a 2-step sequence before seeing any reward, and
+        # the probability of randomly hitting the right pair is ~(1/40)² ≈ 0.06%.
+        [_ex("hmirror(I)",             nv), {"type": "submit", "answer": nv}],
+        [_ex("vmirror(I)",             nv), {"type": "submit", "answer": nv}],
+        [_ex("rot90(I)",               nv), {"type": "submit", "answer": nv}],
+        [_ex("rot180(I)",              nv), {"type": "submit", "answer": nv}],
+        [_ex("rot270(I)",              nv), {"type": "submit", "answer": nv}],
+        [_ex("tophalf(I)",             nv), {"type": "submit", "answer": nv}],
+        [_ex("bottomhalf(I)",          nv), {"type": "submit", "answer": nv}],
+        [_ex("lefthalf(I)",            nv), {"type": "submit", "answer": nv}],
+        [_ex("righthalf(I)",           nv), {"type": "submit", "answer": nv}],
+        [_ex("hconcat(I, I)",          nv), {"type": "submit", "answer": nv}],
+        [_ex("vconcat(I, I)",          nv), {"type": "submit", "answer": nv}],
+        [_ex("hconcat(I, hmirror(I))", nv), {"type": "submit", "answer": nv}],
+        [_ex("vconcat(I, vmirror(I))", nv), {"type": "submit", "answer": nv}],
+        [_ex("upscale(I, 2)",          nv), {"type": "submit", "answer": nv}],
+        [_ex("trim(I)",                nv), {"type": "submit", "answer": nv}],
+
+        # ── 55-58  Additional single-step transforms ───────────────────────
+        # Each adds puzzles not covered by macros 40-54 (verified on data/train).
+        [_ex("dmirror(I)",             nv), {"type": "submit", "answer": nv}],
+        [_ex("compress(I)",            nv), {"type": "submit", "answer": nv}],
+        [_ex("upscale(I, 3)",          nv), {"type": "submit", "answer": nv}],
+        # 2-step: hmirror then rot90
+        [_ex("hmirror(I)", nv), _ex(f"rot90({nv})", n2), {"type": "submit", "answer": n2}],
     ]
 
     assert len(macros) == NUM_MACROS, f"Expected {NUM_MACROS}, got {len(macros)}"
     return macros
 
 
-NUM_MACROS = 40
+NUM_MACROS = 59
 
 
 def _ex(call: str, var: str) -> dict:
@@ -405,12 +435,14 @@ class GridRLAgent(BaseAgent):
         lr: float = 5e-4,
         gamma: float = 0.99,
         baseline_decay: float = 0.95,
+        entropy_coeff: float = 0.01,
         deterministic: bool = False,
         checkpoint_path: Optional[str] = None,
     ):
         self.hidden_dim      = hidden_dim
         self.gamma           = gamma
         self.baseline_decay  = baseline_decay
+        self.entropy_coeff   = entropy_coeff   # entropy bonus keeps policy exploring
         self.deterministic   = deterministic
 
         self._policy         = None
@@ -419,7 +451,7 @@ class GridRLAgent(BaseAgent):
         self._baseline       = 0.0    # exponential moving average of returns
         self._build(lr)
 
-        # Episode trajectory: (log_prob, reward) per step
+        # Episode trajectory: (log_prob, reward, entropy) per macro step
         self._trajectory: List[Tuple] = []
 
         if checkpoint_path and os.path.isfile(checkpoint_path):
@@ -457,7 +489,8 @@ class GridRLAgent(BaseAgent):
             idx = int(t.item())
 
         log_prob = dist.log_prob(torch.tensor([idx], device=self._device))
-        self._trajectory.append([log_prob, 0.0])   # reward filled in later
+        entropy  = dist.entropy()
+        self._trajectory.append([log_prob, 0.0, entropy])  # reward filled in later
         self._last_macro_idx = idx
         self._last_obs = observation
 
@@ -482,38 +515,48 @@ class GridRLAgent(BaseAgent):
 
     def reinforce_update(self) -> float:
         """
-        REINFORCE update with exponential moving average baseline.
+        REINFORCE update with EMA moving-average baseline.
 
-        Baseline reduces variance: instead of pushing up all positive-reward
-        actions, we only push up actions that performed ABOVE average.
-        
+        Advantages are computed as `return − baseline` where baseline is an
+        exponential moving average of episode returns across training.  This
+        works correctly for any episode length, including the 1-step combined
+        macros (40–54):
+
+          correct solve  (+0.98):  0.98 − 0.30 = +0.68  → strong ↑ gradient
+          wrong submit   (+0.14):  0.14 − 0.30 = −0.16  → slight  ↓ gradient
+
+        Within-episode normalisation was tried previously but breaks for short
+        episodes: std=0 for 1-step episodes → zero gradient regardless of
+        outcome, and ±1 for all 2-step episodes regardless of success.
+
+        An entropy bonus keeps the policy from collapsing to one action.
         """
         import torch
 
         if not self._trajectory:
             return 0.0
 
-        # Compute discounted returns
-        rewards = [r for _, r in self._trajectory]
+        # Discounted returns
+        rewards = [r for _, r, *_ in self._trajectory]
         returns = []
         R = 0.0
         for r in reversed(rewards):
             R = r + self.gamma * R
             returns.insert(0, R)
 
+        # EMA baseline update (uses the return from the start of the episode)
         episode_return = returns[0]
-
-        # Update baseline
         self._baseline = (self.baseline_decay * self._baseline
                           + (1 - self.baseline_decay) * episode_return)
 
-        # Advantage = return - baseline
+        # Advantages: how much better/worse than average?
         advantages = [ret - self._baseline for ret in returns]
+        returns_t = torch.tensor(advantages, device=self._device, dtype=torch.float32)
 
-        # Policy gradient loss
+        # Policy gradient loss + entropy bonus
         loss = torch.tensor(0.0, device=self._device)
-        for (log_prob, _), adv in zip(self._trajectory, advantages):
-            loss = loss + (-log_prob * adv)
+        for (log_prob, _, entropy), ret in zip(self._trajectory, returns_t):
+            loss = loss + (-log_prob * ret - self.entropy_coeff * entropy)
 
         loss = loss / max(len(self._trajectory), 1)
 

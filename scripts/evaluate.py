@@ -20,12 +20,18 @@ from env import ArcEnv
 from agents.random_agent import RandomAgent
 from agents.learning_agent import LearningAgent
 from agents.rl_agent import RLAgent
+from agents.dfs_agent import DFSAgent
+from agents.rl_beam_agent import RLBeamAgent
 
 
 def run_episode(env: ArcEnv, agent, puzzle_id=None, verbose=False):
     """Run one episode. Returns dict of metrics."""
     obs = env.reset(puzzle_id)
     agent.setup(obs)
+
+    # Give search-based agents direct env access (for DSL execution)
+    if hasattr(agent, '_env_ref'):
+        agent._env_ref = env
 
     pid = obs["puzzle_id"]
     if verbose:
@@ -78,8 +84,21 @@ def make_agent(agent_name: str, **kwargs):
             max_steps=kwargs.get("max_steps", 20),
             checkpoint_path=kwargs.get("rl_checkpoint"),
         )
+    elif agent_name == "dfs":
+        return DFSAgent(
+            max_steps=kwargs.get("max_steps", 50),
+            max_depth=kwargs.get("max_depth", 3),
+        )
+    elif agent_name == "rl_beam":
+        return RLBeamAgent(
+            checkpoint_path=kwargs.get("rl_checkpoint"),
+            max_steps=kwargs.get("max_steps", 50),
+            beam_width=kwargs.get("beam_width", 8),
+            beam_depth=kwargs.get("beam_depth", 4),
+            top_b=kwargs.get("top_b", 10),
+        )
     else:
-        raise ValueError(f"Unknown agent: {agent_name}. Available: random, learning, rl")
+        raise ValueError(f"Unknown agent: {agent_name}. Available: random, learning, rl, dfs, rl_beam")
 
 
 def main():
@@ -99,6 +118,14 @@ def main():
     parser.add_argument("--n", type=int, default=None,
                         help="Number of puzzles to evaluate (default: all)")
     parser.add_argument("--budget", "-b", type=int, default=50)
+    parser.add_argument("--max-depth", type=int, default=3,
+                        help="Max DFS depth for dfs agent (default: 3)")
+    parser.add_argument("--beam-width", type=int, default=8,
+                        help="Beam width K for rl_beam agent (default: 8)")
+    parser.add_argument("--beam-depth", type=int, default=4,
+                        help="Max program depth for rl_beam agent (default: 4)")
+    parser.add_argument("--top-b", type=int, default=10,
+                        help="Top-B operators per beam expansion (default: 10)")
     parser.add_argument("--episodes", "-e", type=int, default=1,
                         help="Episodes per puzzle (for stochastic agents)")
     parser.add_argument("--verbose", "-v", action="store_true")
@@ -113,6 +140,10 @@ def main():
         model_path=args.model_path,
         offline_data=args.offline_data,
         rl_checkpoint=args.rl_checkpoint,
+        max_depth=args.max_depth,
+        beam_width=args.beam_width,
+        beam_depth=args.beam_depth,
+        top_b=args.top_b,
     )
 
     if len(env.puzzle_db) == 0:

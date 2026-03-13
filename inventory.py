@@ -130,8 +130,9 @@ def infer_type_label(value: Any) -> str:
         if len(value) == 0:
             return "Tuple(0)"
         first = value[0]
-        # Grid: tuple of tuples of ints
-        if isinstance(first, tuple) and len(first) > 0 and isinstance(first[0], int):
+        # Grid: tuple of tuples of ints — verify ALL rows are tuples of ints
+        if (isinstance(first, tuple) and len(first) > 0 and isinstance(first[0], int)
+                and all(isinstance(r, tuple) for r in value)):
             return f"Grid({len(value)}x{len(first)})"
         # IntegerTuple
         if isinstance(first, int) and len(value) == 2:
@@ -162,7 +163,18 @@ def infer_type_label(value: Any) -> str:
 
 
 def _preview(value: Any, type_label: str, max_len: int = 120) -> str:
-    """Short text preview of a value."""
+    """Short text preview of a value. Never raises — returns repr() on any error."""
+    try:
+        return _preview_inner(value, type_label, max_len)
+    except Exception:
+        try:
+            s = repr(value)
+            return s[:max_len] + "..." if len(s) > max_len else s
+        except Exception:
+            return f"<{type_label}>"
+
+
+def _preview_inner(value: Any, type_label: str, max_len: int = 120) -> str:
     if type_label == "Callable":
         name = getattr(value, '__name__', None) or "lambda"
         return f"<fn:{name}>"
@@ -170,32 +182,40 @@ def _preview(value: Any, type_label: str, max_len: int = 120) -> str:
         rows = value
         lines = []
         for r in rows[:3]:
-            lines.append(" ".join(str(v) for v in r[:12]))
+            if not isinstance(r, tuple):
+                lines.append(str(r))
+            else:
+                lines.append(" ".join(str(v) for v in r[:12]))
         if len(rows) > 3:
             lines.append("...")
         return " | ".join(lines)
     if type_label.startswith("Object("):
-        cells = sorted(value, key=lambda c: (c[1][0], c[1][1]))[:6]
-        parts = [f"{v}@({i},{j})" for v, (i, j) in cells]
+        try:
+            cells = sorted(value, key=lambda c: (c[1][0], c[1][1]) if isinstance(c[1], tuple) else (c[1], 0))[:6]
+            parts = []
+            for c in cells:
+                if isinstance(c, tuple) and len(c) == 2 and isinstance(c[1], tuple) and len(c[1]) == 2:
+                    parts.append(f"{c[0]}@({c[1][0]},{c[1][1]})")
+                else:
+                    parts.append(repr(c))
+        except Exception:
+            parts = [repr(c) for c in list(value)[:6]]
         if len(value) > 6:
             parts.append("...")
         return ", ".join(parts)
     if type_label.startswith("Objects("):
         return f"{len(value)} objects"
     if type_label.startswith("Indices("):
-        # pts = sorted(value)[:6]
-        # parts = [f"({i},{j})" for i, j in pts]
-        # if len(value) > 6:
-        #     parts.append("...")
-        # return ", ".join(parts)
-        # Only sort if all elements are tuples of length 2
         try:
             pts = sorted(value)[:6]
-            parts = [f"({i},{j})" for i, j in pts]
         except TypeError:
-            # Mixed types (e.g. frozenset of ints and tuples) — fall back to repr
             pts = list(value)[:6]
-            parts = [repr(p) for p in pts]
+        parts = []
+        for p in pts:
+            if isinstance(p, tuple) and len(p) == 2:
+                parts.append(f"({p[0]},{p[1]})")
+            else:
+                parts.append(repr(p))
         if len(value) > 6:
             parts.append("...")
         return ", ".join(parts)
