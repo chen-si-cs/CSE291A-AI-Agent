@@ -1,0 +1,1496 @@
+
+============================================================
+PUZZLE: d23f8c26  |  GT steps: 7  |  GT DSLs: 7  |  Distractors: 10  |  Total DSLs shown: 17
+============================================================
+
+GT DSL functions (7):
+  [GT] asindices(grid)  --  indices of all grid cells
+  [GT] compose(outer, inner)  --  function composition
+  [GT] fill(grid, value, patch)  --  fill value at indices
+  [GT] halve(n)  --  scaling by one half
+  [GT] matcher(function, target)  --  construction of equality function
+  [GT] sfilter(container, condition)  --  keep elements in container that satisfy condition
+  [GT] width(piece)  --  width of grid or patch
+
+Distractor DSL functions (10):
+  [DISTRACTOR] cellwise(a, b, fallback)  --  cellwise match of two grids
+  [DISTRACTOR] color(obj)  --  color of object
+  [DISTRACTOR] crop(grid, start, dims)  --  subgrid specified by start and dimension
+  [DISTRACTOR] hmirror(piece)  --  mirroring along horizontal
+  [DISTRACTOR] insert(value, container)  --  insert item into container
+  [DISTRACTOR] leastcommon(container)  --  least common item
+  [DISTRACTOR] manhattan(a, b)  --  closest manhattan distance between two patches
+  [DISTRACTOR] repeat(item, num)  --  repetition of item within vector
+  [DISTRACTOR] rot180(grid)  --  half rotation
+  [DISTRACTOR] vfrontier(location)  --  vertical frontier
+
+Display order shown to agent:
+  [GT] matcher
+  [GT] asindices
+  [GT] halve
+  [DISTRACTOR] vfrontier
+  [DISTRACTOR] crop
+  [GT] compose
+  [DISTRACTOR] cellwise
+  [DISTRACTOR] color
+  [DISTRACTOR] insert
+  [DISTRACTOR] repeat
+  [DISTRACTOR] rot180
+  [DISTRACTOR] leastcommon
+  [DISTRACTOR] hmirror
+  [GT] fill
+  [GT] width
+  [DISTRACTOR] manhattan
+  [GT] sfilter
+
+
+--- INITIAL OBSERVATION ---
+=== ARC-AGI PUZZLE ===
+TRAINING EXAMPLES:
+
+--- Train Pair 1 ---
+Input:
+  [6, 4, 0]
+  [0, 3, 9]
+  [1, 0, 0]
+Output:
+  [0, 4, 0]
+  [0, 3, 0]
+  [0, 0, 0]
+
+--- Train Pair 2 ---
+Input:
+  [8, 0, 3, 0, 0]
+  [8, 6, 5, 6, 0]
+  [3, 6, 3, 0, 0]
+  [0, 0, 0, 5, 9]
+  [5, 0, 9, 0, 0]
+Output:
+  [0, 0, 3, 0, 0]
+  [0, 0, 5, 0, 0]
+  [0, 0, 3, 0, 0]
+  [0, 0, 0, 0, 0]
+  [0, 0, 9, 0, 0]
+
+--- Train Pair 3 ---
+Input:
+  [3, 0, 4, 0, 0]
+  [3, 0, 4, 7, 0]
+  [0, 6, 0, 0, 7]
+  [0, 0, 8, 0, 0]
+  [0, 8, 0, 2, 2]
+Output:
+  [0, 0, 4, 0, 0]
+  [0, 0, 4, 0, 0]
+  [0, 0, 0, 0, 0]
+  [0, 0, 8, 0, 0]
+  [0, 0, 0, 0, 0]
+
+--- Test Input ---
+Input:
+  [0, 0, 3, 0, 0, 0, 7]
+  [8, 1, 0, 8, 0, 0, 0]
+  [0, 0, 3, 0, 8, 0, 3]
+  [0, 7, 0, 1, 0, 7, 0]
+  [0, 0, 0, 0, 0, 0, 0]
+  [1, 0, 8, 6, 0, 0, 0]
+  [0, 8, 0, 6, 0, 1, 0]
+
+Your goal: produce the correct output grid for this test input.
+
+=== AVAILABLE DSL FUNCTIONS ===
+  matcher(function, target)  --  construction of equality function
+  asindices(grid)  --  indices of all grid cells
+  halve(n)  --  scaling by one half
+  vfrontier(location)  --  vertical frontier
+  crop(grid, start, dims)  --  subgrid specified by start and dimension
+  compose(outer, inner)  --  function composition
+  cellwise(a, b, fallback)  --  cellwise match of two grids
+  color(obj)  --  color of object
+  insert(value, container)  --  insert item into container
+  repeat(item, num)  --  repetition of item within vector
+  rot180(grid)  --  half rotation
+  leastcommon(container)  --  least common item
+  hmirror(piece)  --  mirroring along horizontal
+  fill(grid, value, patch)  --  fill value at indices
+  width(piece)  --  width of grid or patch
+  manhattan(a, b)  --  closest manhattan distance between two patches
+  sfilter(container, condition)  --  keep elements in container that satisfy condition
+
+=== AVAILABLE CONSTANTS ===
+  ZERO=0
+
+=== CURRENT VARIABLES ===
+  I = <test input grid shown above>
+
+Write the next DSL call:
+--- END INITIAL OBSERVATION ---
+
+
+--- PLANNING ROUND ---
+ Let me analyze the training examples to find the pattern.
+
+**Train Pair 1:**
+- Input is 3x3
+- Looking at columns: column 0 has [6,0,1], column 1 has [4,3,0], column 2 has [0,9,0]
+- Output keeps only column 1: [0,4,0], [0,3,0], [0,0,0]
+- Column 1 seems to be the "most common" or "mode" column? Or maybe center column?
+
+**Train Pair 2:**
+- Input is 5x5
+- Output keeps only column 2 (middle column): [0,0,3,0,0], [0,0,5,0,0], [0,0,3,0,0], [0,0,0,0,0], [0,0,9,0,0]
+- The middle column values are extracted: 3,5,3,0,9
+
+**Train Pair 3:**
+- Input is 5x5
+- Output keeps only column 2 (middle column): [0,0,4,0,0], [0,0,4,0,0], [0,0,0,0,0], [0,0,8,0,0], [0,0,0,0,0]
+- The middle column values are: 4,4,0,8,0
+
+**Pattern identified:** The transformation extracts the middle column and places it in the middle column of the output, with all other cells set to 0.
+
+For a grid of width W, the middle column is at index W//2.
+
+For the test input (7x7), the middle column is at index 3.
+
+**Step-by-step plan:**
+1. Create a grid of zeros with the same dimensions as input
+2. Extract the middle column from the input
+3. Fill the middle column of the zero grid with those values
+
+Let me start implementing:
+
+x1 = shape(I)  # Get dimensions
+x2 = width(I)  # Get width
+x3 = halve(x2)  # Should give 3 for width 7? Or need to adjust
+
+Actually, let me think about this more carefully. For width 7, middle is index 3. halve(7) = 3.5, but we need integer. Let me check if there's a way to get the middle.
+
+Looking at DSL: I need to extract column at index width//2. For 7x7, that's column 3.
+
+I can use crop to extract the middle column, then use fill or construct the output.
+
+Actually, simpler approach: use vfrontier to create a vertical line at the middle position, then use that with fill... but I need to get the values first.
+
+Let me try: crop the middle column, then create output grid.
+
+x1 = width(I)
+x2 = halve(x1)  # This gives 3.5 for 7, not ideal
+
+Wait, let me re-read. For Train Pair 2, width is 5, middle column is 2. halve(5) = 2.5. 
+
+Hmm, but looking at outputs, it seems like we need floor division. Let me check if there's another way.
+
+Actually, looking more carefully at the pattern - I need to extract column at index 2 for 5-wide, and index 3 for 7-wide. That's width // 2 using integer division.
+
+Since I don't see integer division, let me think... For odd widths, halve gives .5, so maybe I need to use crop with start and dims.
+
+For width 7: start at (0, 3), dims (7, 1) - this extracts column 3.
+
+x1 = shape(I)
+x2 = height(I)  # need height function? Not in list.
+
+Let me check available functions again... I don't see height, but I can get shape.
+
+Actually, let me try: crop(I, (0, 3), (7, 1)) for the test case. But I need to compute 3 and 7 dynamically.
+
+x1 = width(I)  # 7
+x2 = halve(x1)  # 3.5 - not useful directly
+
+Hmm, I need to think differently. Let me use asindices and work with that, or use repeat and construct.
+
+Actually, simpler: I'll manually figure out the middle column index. For 7x7, middle column is 3. I can use crop with hardcoded values based on analysis, or find another way.
+
+Let me try using fill with vfrontier. First I need to extract the middle column values.
+
+I'll use crop to get the middle column as a subgrid, then fill a zero grid.
+
+x1 = width(I)
+x2 = halve(x1)  # 3.5
+
+This doesn't work well. Let me check if the pattern could be different.
+
+Actually re-looking: maybe it's about finding the most common non-zero column? Or the column with most variety?
+
+Let me try a different approach - use asindices to find all indices, then filter.
+
+Actually, I think I need to just compute: for width 7, column 3 is middle. I'll use crop with (0, 3) start and (7, 1) dims, but I need to get 7 (height).
+
+Since I don't have height, I'll use len(I) or shape.
+
+Let me try: x1 = shape(I) gives (7, 7) presumably as a tuple or grid.
+
+Actually, looking more carefully at DSL - shape might return a grid or tuple. Let me assume I can work with it.
+
+Given the constraints, let me try:
+
+x1 = width(I)
+x2 = halve(x1)
+x3 = crop(I, (ZERO, x2), (x1, 1))
+
+But x2 is 3.5, not 3. 
+
+Wait - I need to re-check. For 5x5, is the output column 2? Let me verify: [0,0,3,0,0] - yes, index 2. For 3x3: [0,4,0] - yes, index 1. For 7x7: should be index 3.
+
+Since halve(7) = 3.5, I need floor. Maybe I can use int() or there's another trick.
+
+Actually, re-reading: maybe the pattern is different. Let me check if it's always column 2 regardless...
+
+No, for 3x3 it's column 1. So it is middle column.
+
+Given DSL limitations, let me try: x2 = halve(x1) might work if it truncates, or I need to find another way.
+
+Let me try using compose or other functions. Or maybe I can use sfilter with indices.
+
+Actually, simplest approach: I'll use asindices to get all indices, then manually construct by filtering for column = width//2.
+
+But I need integer division. Let me check if halve rounds down...
+
+Given the puzzle context, let me assume halve does what we need or try directly.
+
+x1 = width(I)
+x2 = halve(x1)
+
+If x2=3 for width 7, great. If 3.5, I'll need adjustment.
+
+Let me proceed and see: x1 = width(I)
+--- END PLANNING ---
+
+  Step  1 | x1 = width(I)
+    exec: OK: x1 assigned
+    --- feedback obs (step 1) ---
+Executed: x1 = width(I)
+Result: OK: x1 assigned
+
+=== CURRENT VARIABLES ===
+  I = <7x7 grid>
+    [0, 0, 3, 0, 0, 0, 7]
+    [8, 1, 0, 8, 0, 0, 0]
+    [0, 0, 3, 0, 8, 0, 3]
+    [0, 7, 0, 1, 0, 7, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [1, 0, 8, 6, 0, 0, 0]
+    [0, 8, 0, 6, 0, 1, 0]
+  x1 = 7
+
+Available DSL functions:
+  matcher(function, target)  --  construction of equality function
+  asindices(grid)  --  indices of all grid cells
+  halve(n)  --  scaling by one half
+  vfrontier(location)  --  vertical frontier
+  crop(grid, start, dims)  --  subgrid specified by start and dimension
+  compose(outer, inner)  --  function composition
+  cellwise(a, b, fallback)  --  cellwise match of two grids
+  color(obj)  --  color of object
+  insert(value, container)  --  insert item into container
+  repeat(item, num)  --  repetition of item within vector
+  rot180(grid)  --  half rotation
+  leastcommon(container)  --  least common item
+  hmirror(piece)  --  mirroring along horizontal
+  fill(grid, value, patch)  --  fill value at indices
+  width(piece)  --  width of grid or patch
+  manhattan(a, b)  --  closest manhattan distance between two patches
+  sfilter(container, condition)  --  keep elements in container that satisfy condition
+
+Write the next DSL call:
+  Step  2 | x2 = halve(x1)
+    exec: OK: x2 assigned
+    --- feedback obs (step 2) ---
+Executed: x2 = halve(x1)
+Result: OK: x2 assigned
+
+=== CURRENT VARIABLES ===
+  I = <7x7 grid>
+    [0, 0, 3, 0, 0, 0, 7]
+    [8, 1, 0, 8, 0, 0, 0]
+    [0, 0, 3, 0, 8, 0, 3]
+    [0, 7, 0, 1, 0, 7, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [1, 0, 8, 6, 0, 0, 0]
+    [0, 8, 0, 6, 0, 1, 0]
+  x1 = 7
+  x2 = 3
+
+Available DSL functions:
+  matcher(function, target)  --  construction of equality function
+  asindices(grid)  --  indices of all grid cells
+  halve(n)  --  scaling by one half
+  vfrontier(location)  --  vertical frontier
+  crop(grid, start, dims)  --  subgrid specified by start and dimension
+  compose(outer, inner)  --  function composition
+  cellwise(a, b, fallback)  --  cellwise match of two grids
+  color(obj)  --  color of object
+  insert(value, container)  --  insert item into container
+  repeat(item, num)  --  repetition of item within vector
+  rot180(grid)  --  half rotation
+  leastcommon(container)  --  least common item
+  hmirror(piece)  --  mirroring along horizontal
+  fill(grid, value, patch)  --  fill value at indices
+  width(piece)  --  width of grid or patch
+  manhattan(a, b)  --  closest manhattan distance between two patches
+  sfilter(container, condition)  --  keep elements in container that satisfy condition
+
+Write the next DSL call:
+  Step  3 | x3 = crop(I, (ZERO, x2), (x1, 1))
+    exec: OK: x3 assigned
+    --- feedback obs (step 3) ---
+Executed: x3 = crop(I, (ZERO, x2), (x1, 1))
+Result: OK: x3 assigned
+
+=== CURRENT VARIABLES ===
+  I = <7x7 grid>
+    [0, 0, 3, 0, 0, 0, 7]
+    [8, 1, 0, 8, 0, 0, 0]
+    [0, 0, 3, 0, 8, 0, 3]
+    [0, 7, 0, 1, 0, 7, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [1, 0, 8, 6, 0, 0, 0]
+    [0, 8, 0, 6, 0, 1, 0]
+  x1 = 7
+  x2 = 3
+  x3 = <7x1 grid>
+    [0]
+    [8]
+    [0]
+    [1]
+    [0]
+    [6]
+    [6]
+
+Available DSL functions:
+  matcher(function, target)  --  construction of equality function
+  asindices(grid)  --  indices of all grid cells
+  halve(n)  --  scaling by one half
+  vfrontier(location)  --  vertical frontier
+  crop(grid, start, dims)  --  subgrid specified by start and dimension
+  compose(outer, inner)  --  function composition
+  cellwise(a, b, fallback)  --  cellwise match of two grids
+  color(obj)  --  color of object
+  insert(value, container)  --  insert item into container
+  repeat(item, num)  --  repetition of item within vector
+  rot180(grid)  --  half rotation
+  leastcommon(container)  --  least common item
+  hmirror(piece)  --  mirroring along horizontal
+  fill(grid, value, patch)  --  fill value at indices
+  width(piece)  --  width of grid or patch
+  manhattan(a, b)  --  closest manhattan distance between two patches
+  sfilter(container, condition)  --  keep elements in container that satisfy condition
+
+Write the next DSL call:
+  Step  4 | x4 = repeat(ZERO, x1)
+    exec: OK: x4 assigned
+    --- feedback obs (step 4) ---
+Executed: x4 = repeat(ZERO, x1)
+Result: OK: x4 assigned
+
+=== CURRENT VARIABLES ===
+  I = <7x7 grid>
+    [0, 0, 3, 0, 0, 0, 7]
+    [8, 1, 0, 8, 0, 0, 0]
+    [0, 0, 3, 0, 8, 0, 3]
+    [0, 7, 0, 1, 0, 7, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [1, 0, 8, 6, 0, 0, 0]
+    [0, 8, 0, 6, 0, 1, 0]
+  x1 = 7
+  x2 = 3
+  x3 = <7x1 grid>
+    [0]
+    [8]
+    [0]
+    [1]
+    [0]
+    [6]
+    [6]
+  x4 = (0, 0, 0, 0, 0, 0, 0)
+
+Available DSL functions:
+  matcher(function, target)  --  construction of equality function
+  asindices(grid)  --  indices of all grid cells
+  halve(n)  --  scaling by one half
+  vfrontier(location)  --  vertical frontier
+  crop(grid, start, dims)  --  subgrid specified by start and dimension
+  compose(outer, inner)  --  function composition
+  cellwise(a, b, fallback)  --  cellwise match of two grids
+  color(obj)  --  color of object
+  insert(value, container)  --  insert item into container
+  repeat(item, num)  --  repetition of item within vector
+  rot180(grid)  --  half rotation
+  leastcommon(container)  --  least common item
+  hmirror(piece)  --  mirroring along horizontal
+  fill(grid, value, patch)  --  fill value at indices
+  width(piece)  --  width of grid or patch
+  manhattan(a, b)  --  closest manhattan distance between two patches
+  sfilter(container, condition)  --  keep elements in container that satisfy condition
+
+Write the next DSL call:
+  Step  5 | x5 = repeat(x4, x1)
+    exec: OK: x5 assigned
+    --- feedback obs (step 5) ---
+Executed: x5 = repeat(x4, x1)
+Result: OK: x5 assigned
+
+=== CURRENT VARIABLES ===
+  I = <7x7 grid>
+    [0, 0, 3, 0, 0, 0, 7]
+    [8, 1, 0, 8, 0, 0, 0]
+    [0, 0, 3, 0, 8, 0, 3]
+    [0, 7, 0, 1, 0, 7, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [1, 0, 8, 6, 0, 0, 0]
+    [0, 8, 0, 6, 0, 1, 0]
+  x1 = 7
+  x2 = 3
+  x3 = <7x1 grid>
+    [0]
+    [8]
+    [0]
+    [1]
+    [0]
+    [6]
+    [6]
+  x4 = (0, 0, 0, 0, 0, 0, 0)
+  x5 = <7x7 grid>
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+
+Available DSL functions:
+  matcher(function, target)  --  construction of equality function
+  asindices(grid)  --  indices of all grid cells
+  halve(n)  --  scaling by one half
+  vfrontier(location)  --  vertical frontier
+  crop(grid, start, dims)  --  subgrid specified by start and dimension
+  compose(outer, inner)  --  function composition
+  cellwise(a, b, fallback)  --  cellwise match of two grids
+  color(obj)  --  color of object
+  insert(value, container)  --  insert item into container
+  repeat(item, num)  --  repetition of item within vector
+  rot180(grid)  --  half rotation
+  leastcommon(container)  --  least common item
+  hmirror(piece)  --  mirroring along horizontal
+  fill(grid, value, patch)  --  fill value at indices
+  width(piece)  --  width of grid or patch
+  manhattan(a, b)  --  closest manhattan distance between two patches
+  sfilter(container, condition)  --  keep elements in container that satisfy condition
+
+Write the next DSL call:
+  Step  6 | x6 = asindices(x3)
+    exec: OK: x6 assigned
+    --- feedback obs (step 6) ---
+Executed: x6 = asindices(x3)
+Result: OK: x6 assigned
+
+=== CURRENT VARIABLES ===
+  I = <7x7 grid>
+    [0, 0, 3, 0, 0, 0, 7]
+    [8, 1, 0, 8, 0, 0, 0]
+    [0, 0, 3, 0, 8, 0, 3]
+    [0, 7, 0, 1, 0, 7, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [1, 0, 8, 6, 0, 0, 0]
+    [0, 8, 0, 6, 0, 1, 0]
+  x1 = 7
+  x2 = 3
+  x3 = <7x1 grid>
+    [0]
+    [8]
+    [0]
+    [1]
+    [0]
+    [6]
+    [6]
+  x4 = (0, 0, 0, 0, 0, 0, 0)
+  x5 = <7x7 grid>
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+  x6 = frozenset({(4, 0), (0, 0), (2, 0), (3, 0), (5, 0), (6, 0), (1, 0)})
+
+Available DSL functions:
+  matcher(function, target)  --  construction of equality function
+  asindices(grid)  --  indices of all grid cells
+  halve(n)  --  scaling by one half
+  vfrontier(location)  --  vertical frontier
+  crop(grid, start, dims)  --  subgrid specified by start and dimension
+  compose(outer, inner)  --  function composition
+  cellwise(a, b, fallback)  --  cellwise match of two grids
+  color(obj)  --  color of object
+  insert(value, container)  --  insert item into container
+  repeat(item, num)  --  repetition of item within vector
+  rot180(grid)  --  half rotation
+  leastcommon(container)  --  least common item
+  hmirror(piece)  --  mirroring along horizontal
+  fill(grid, value, patch)  --  fill value at indices
+  width(piece)  --  width of grid or patch
+  manhattan(a, b)  --  closest manhattan distance between two patches
+  sfilter(container, condition)  --  keep elements in container that satisfy condition
+
+Write the next DSL call:
+  Step  7 | x7 = vfrontier((0, x2))
+    exec: OK: x7 assigned
+    --- feedback obs (step 7) ---
+Executed: x7 = vfrontier((0, x2))
+Result: OK: x7 assigned
+
+=== CURRENT VARIABLES ===
+  I = <7x7 grid>
+    [0, 0, 3, 0, 0, 0, 7]
+    [8, 1, 0, 8, 0, 0, 0]
+    [0, 0, 3, 0, 8, 0, 3]
+    [0, 7, 0, 1, 0, 7, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [1, 0, 8, 6, 0, 0, 0]
+    [0, 8, 0, 6, 0, 1, 0]
+  x1 = 7
+  x2 = 3
+  x3 = <7x1 grid>
+    [0]
+    [8]
+    [0]
+    [1]
+    [0]
+    [6]
+    [6]
+  x4 = (0, 0, 0, 0, 0, 0, 0)
+  x5 = <7x7 grid>
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+  x6 = frozenset({(4, 0), (0, 0), (2, 0), (3, 0), (5, 0), (6, 0), (1, 0)})
+  x7 = frozenset({(4, 3), (17, 3), (28, 3), (8, 3), (19, 3), (10, 3), (1, 3), (21, 3), (12, 3), (23, 3), (3, 3), (14, 3), (5, 3), (27, 3), (25, 3), (16, 3), (7, 3), (18, 3), (29, 3), (20, 3), (22, 3), (9, 3)...
+
+Available DSL functions:
+  matcher(function, target)  --  construction of equality function
+  asindices(grid)  --  indices of all grid cells
+  halve(n)  --  scaling by one half
+  vfrontier(location)  --  vertical frontier
+  crop(grid, start, dims)  --  subgrid specified by start and dimension
+  compose(outer, inner)  --  function composition
+  cellwise(a, b, fallback)  --  cellwise match of two grids
+  color(obj)  --  color of object
+  insert(value, container)  --  insert item into container
+  repeat(item, num)  --  repetition of item within vector
+  rot180(grid)  --  half rotation
+  leastcommon(container)  --  least common item
+  hmirror(piece)  --  mirroring along horizontal
+  fill(grid, value, patch)  --  fill value at indices
+  width(piece)  --  width of grid or patch
+  manhattan(a, b)  --  closest manhattan distance between two patches
+  sfilter(container, condition)  --  keep elements in container that satisfy condition
+
+Write the next DSL call:
+  Step  8 | x8 = asindices(x5)
+    exec: OK: x8 assigned
+    --- feedback obs (step 8) ---
+Executed: x8 = asindices(x5)
+Result: OK: x8 assigned
+
+=== CURRENT VARIABLES ===
+  I = <7x7 grid>
+    [0, 0, 3, 0, 0, 0, 7]
+    [8, 1, 0, 8, 0, 0, 0]
+    [0, 0, 3, 0, 8, 0, 3]
+    [0, 7, 0, 1, 0, 7, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [1, 0, 8, 6, 0, 0, 0]
+    [0, 8, 0, 6, 0, 1, 0]
+  x1 = 7
+  x2 = 3
+  x3 = <7x1 grid>
+    [0]
+    [8]
+    [0]
+    [1]
+    [0]
+    [6]
+    [6]
+  x4 = (0, 0, 0, 0, 0, 0, 0)
+  x5 = <7x7 grid>
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+  x6 = frozenset({(4, 0), (0, 0), (2, 0), (3, 0), (5, 0), (6, 0), (1, 0)})
+  x7 = frozenset({(4, 3), (17, 3), (28, 3), (8, 3), (19, 3), (10, 3), (1, 3), (21, 3), (12, 3), (23, 3), (3, 3), (14, 3), (5, 3), (27, 3), (25, 3), (16, 3), (7, 3), (18, 3), (29, 3), (20, 3), (22, 3), (9, 3)...
+  x8 = frozenset({(4, 0), (3, 4), (4, 3), (3, 1), (5, 4), (4, 6), (5, 1), (0, 2), (0, 5), (2, 2), (1, 0), (1, 6), (2, 5), (1, 3), (6, 2), (6, 5), (4, 2), (3, 0), (4, 5), (3, 3), (5, 0), (5, 6), (3, 6), (5, 3...
+
+Available DSL functions:
+  matcher(function, target)  --  construction of equality function
+  asindices(grid)  --  indices of all grid cells
+  halve(n)  --  scaling by one half
+  vfrontier(location)  --  vertical frontier
+  crop(grid, start, dims)  --  subgrid specified by start and dimension
+  compose(outer, inner)  --  function composition
+  cellwise(a, b, fallback)  --  cellwise match of two grids
+  color(obj)  --  color of object
+  insert(value, container)  --  insert item into container
+  repeat(item, num)  --  repetition of item within vector
+  rot180(grid)  --  half rotation
+  leastcommon(container)  --  least common item
+  hmirror(piece)  --  mirroring along horizontal
+  fill(grid, value, patch)  --  fill value at indices
+  width(piece)  --  width of grid or patch
+  manhattan(a, b)  --  closest manhattan distance between two patches
+  sfilter(container, condition)  --  keep elements in container that satisfy condition
+
+Write the next DSL call:
+  Step  9 | x9 = sfilter(x8, matcher(color, 0))
+    exec: Execution error: TypeError: 'int' object is not subscriptable
+    --- feedback obs (step 9) ---
+ERROR executing: x9 = sfilter(x8, matcher(color, 0))
+Error: Execution error: TypeError: 'int' object is not subscriptable
+Please try again with a valid DSL call.
+
+=== CURRENT VARIABLES ===
+  I = <7x7 grid>
+    [0, 0, 3, 0, 0, 0, 7]
+    [8, 1, 0, 8, 0, 0, 0]
+    [0, 0, 3, 0, 8, 0, 3]
+    [0, 7, 0, 1, 0, 7, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [1, 0, 8, 6, 0, 0, 0]
+    [0, 8, 0, 6, 0, 1, 0]
+  x1 = 7
+  x2 = 3
+  x3 = <7x1 grid>
+    [0]
+    [8]
+    [0]
+    [1]
+    [0]
+    [6]
+    [6]
+  x4 = (0, 0, 0, 0, 0, 0, 0)
+  x5 = <7x7 grid>
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+  x6 = frozenset({(4, 0), (0, 0), (2, 0), (3, 0), (5, 0), (6, 0), (1, 0)})
+  x7 = frozenset({(4, 3), (17, 3), (28, 3), (8, 3), (19, 3), (10, 3), (1, 3), (21, 3), (12, 3), (23, 3), (3, 3), (14, 3), (5, 3), (27, 3), (25, 3), (16, 3), (7, 3), (18, 3), (29, 3), (20, 3), (22, 3), (9, 3)...
+  x8 = frozenset({(4, 0), (3, 4), (4, 3), (3, 1), (5, 4), (4, 6), (5, 1), (0, 2), (0, 5), (2, 2), (1, 0), (1, 6), (2, 5), (1, 3), (6, 2), (6, 5), (4, 2), (3, 0), (4, 5), (3, 3), (5, 0), (5, 6), (3, 6), (5, 3...
+
+Available DSL functions:
+  matcher(function, target)  --  construction of equality function
+  asindices(grid)  --  indices of all grid cells
+  halve(n)  --  scaling by one half
+  vfrontier(location)  --  vertical frontier
+  crop(grid, start, dims)  --  subgrid specified by start and dimension
+  compose(outer, inner)  --  function composition
+  cellwise(a, b, fallback)  --  cellwise match of two grids
+  color(obj)  --  color of object
+  insert(value, container)  --  insert item into container
+  repeat(item, num)  --  repetition of item within vector
+  rot180(grid)  --  half rotation
+  leastcommon(container)  --  least common item
+  hmirror(piece)  --  mirroring along horizontal
+  fill(grid, value, patch)  --  fill value at indices
+  width(piece)  --  width of grid or patch
+  manhattan(a, b)  --  closest manhattan distance between two patches
+  sfilter(container, condition)  --  keep elements in container that satisfy condition
+
+Write the next DSL call:
+  Step 10 | x9 = sfilter(x8, matcher(width, 1))
+    exec: Execution error: TypeError: object of type 'int' has no len()
+    --- feedback obs (step 10) ---
+ERROR executing: x9 = sfilter(x8, matcher(width, 1))
+Error: Execution error: TypeError: object of type 'int' has no len()
+Please try again with a valid DSL call.
+
+=== CURRENT VARIABLES ===
+  I = <7x7 grid>
+    [0, 0, 3, 0, 0, 0, 7]
+    [8, 1, 0, 8, 0, 0, 0]
+    [0, 0, 3, 0, 8, 0, 3]
+    [0, 7, 0, 1, 0, 7, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [1, 0, 8, 6, 0, 0, 0]
+    [0, 8, 0, 6, 0, 1, 0]
+  x1 = 7
+  x2 = 3
+  x3 = <7x1 grid>
+    [0]
+    [8]
+    [0]
+    [1]
+    [0]
+    [6]
+    [6]
+  x4 = (0, 0, 0, 0, 0, 0, 0)
+  x5 = <7x7 grid>
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+  x6 = frozenset({(4, 0), (0, 0), (2, 0), (3, 0), (5, 0), (6, 0), (1, 0)})
+  x7 = frozenset({(4, 3), (17, 3), (28, 3), (8, 3), (19, 3), (10, 3), (1, 3), (21, 3), (12, 3), (23, 3), (3, 3), (14, 3), (5, 3), (27, 3), (25, 3), (16, 3), (7, 3), (18, 3), (29, 3), (20, 3), (22, 3), (9, 3)...
+  x8 = frozenset({(4, 0), (3, 4), (4, 3), (3, 1), (5, 4), (4, 6), (5, 1), (0, 2), (0, 5), (2, 2), (1, 0), (1, 6), (2, 5), (1, 3), (6, 2), (6, 5), (4, 2), (3, 0), (4, 5), (3, 3), (5, 0), (5, 6), (3, 6), (5, 3...
+
+Available DSL functions:
+  matcher(function, target)  --  construction of equality function
+  asindices(grid)  --  indices of all grid cells
+  halve(n)  --  scaling by one half
+  vfrontier(location)  --  vertical frontier
+  crop(grid, start, dims)  --  subgrid specified by start and dimension
+  compose(outer, inner)  --  function composition
+  cellwise(a, b, fallback)  --  cellwise match of two grids
+  color(obj)  --  color of object
+  insert(value, container)  --  insert item into container
+  repeat(item, num)  --  repetition of item within vector
+  rot180(grid)  --  half rotation
+  leastcommon(container)  --  least common item
+  hmirror(piece)  --  mirroring along horizontal
+  fill(grid, value, patch)  --  fill value at indices
+  width(piece)  --  width of grid or patch
+  manhattan(a, b)  --  closest manhattan distance between two patches
+  sfilter(container, condition)  --  keep elements in container that satisfy condition
+
+Write the next DSL call:
+  Step 11 | x9 = sfilter(x8, matcher(compose(color, vfrontier), ZERO))
+    exec: OK: x9 assigned
+    --- feedback obs (step 11) ---
+Executed: x9 = sfilter(x8, matcher(compose(color, vfrontier), ZERO))
+Result: OK: x9 assigned
+
+=== CURRENT VARIABLES ===
+  I = <7x7 grid>
+    [0, 0, 3, 0, 0, 0, 7]
+    [8, 1, 0, 8, 0, 0, 0]
+    [0, 0, 3, 0, 8, 0, 3]
+    [0, 7, 0, 1, 0, 7, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [1, 0, 8, 6, 0, 0, 0]
+    [0, 8, 0, 6, 0, 1, 0]
+  x1 = 7
+  x2 = 3
+  x3 = <7x1 grid>
+    [0]
+    [8]
+    [0]
+    [1]
+    [0]
+    [6]
+    [6]
+  x4 = (0, 0, 0, 0, 0, 0, 0)
+  x5 = <7x7 grid>
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+  x6 = frozenset({(4, 0), (0, 0), (2, 0), (3, 0), (5, 0), (6, 0), (1, 0)})
+  x7 = frozenset({(4, 3), (17, 3), (28, 3), (8, 3), (19, 3), (10, 3), (1, 3), (21, 3), (12, 3), (23, 3), (3, 3), (14, 3), (5, 3), (27, 3), (25, 3), (16, 3), (7, 3), (18, 3), (29, 3), (20, 3), (22, 3), (9, 3)...
+  x8 = frozenset({(4, 0), (3, 4), (4, 3), (3, 1), (5, 4), (4, 6), (5, 1), (0, 2), (0, 5), (2, 2), (1, 0), (1, 6), (2, 5), (1, 3), (6, 2), (6, 5), (4, 2), (3, 0), (4, 5), (3, 3), (5, 0), (5, 6), (3, 6), (5, 3...
+  x9 = frozenset()
+
+Available DSL functions:
+  matcher(function, target)  --  construction of equality function
+  asindices(grid)  --  indices of all grid cells
+  halve(n)  --  scaling by one half
+  vfrontier(location)  --  vertical frontier
+  crop(grid, start, dims)  --  subgrid specified by start and dimension
+  compose(outer, inner)  --  function composition
+  cellwise(a, b, fallback)  --  cellwise match of two grids
+  color(obj)  --  color of object
+  insert(value, container)  --  insert item into container
+  repeat(item, num)  --  repetition of item within vector
+  rot180(grid)  --  half rotation
+  leastcommon(container)  --  least common item
+  hmirror(piece)  --  mirroring along horizontal
+  fill(grid, value, patch)  --  fill value at indices
+  width(piece)  --  width of grid or patch
+  manhattan(a, b)  --  closest manhattan distance between two patches
+  sfilter(container, condition)  --  keep elements in container that satisfy condition
+
+Write the next DSL call:
+  Step 12 | x10 = sfilter(x8, matcher(compose(width, vfrontier), 1))
+    exec: OK: x10 assigned
+    --- feedback obs (step 12) ---
+Executed: x10 = sfilter(x8, matcher(compose(width, vfrontier), 1))
+Result: OK: x10 assigned
+
+=== CURRENT VARIABLES ===
+  I = <7x7 grid>
+    [0, 0, 3, 0, 0, 0, 7]
+    [8, 1, 0, 8, 0, 0, 0]
+    [0, 0, 3, 0, 8, 0, 3]
+    [0, 7, 0, 1, 0, 7, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [1, 0, 8, 6, 0, 0, 0]
+    [0, 8, 0, 6, 0, 1, 0]
+  x1 = 7
+  x2 = 3
+  x3 = <7x1 grid>
+    [0]
+    [8]
+    [0]
+    [1]
+    [0]
+    [6]
+    [6]
+  x4 = (0, 0, 0, 0, 0, 0, 0)
+  x5 = <7x7 grid>
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+  x6 = frozenset({(4, 0), (0, 0), (2, 0), (3, 0), (5, 0), (6, 0), (1, 0)})
+  x7 = frozenset({(4, 3), (17, 3), (28, 3), (8, 3), (19, 3), (10, 3), (1, 3), (21, 3), (12, 3), (23, 3), (3, 3), (14, 3), (5, 3), (27, 3), (25, 3), (16, 3), (7, 3), (18, 3), (29, 3), (20, 3), (22, 3), (9, 3)...
+  x8 = frozenset({(4, 0), (3, 4), (4, 3), (3, 1), (5, 4), (4, 6), (5, 1), (0, 2), (0, 5), (2, 2), (1, 0), (1, 6), (2, 5), (1, 3), (6, 2), (6, 5), (4, 2), (3, 0), (4, 5), (3, 3), (5, 0), (5, 6), (3, 6), (5, 3...
+  x9 = frozenset()
+  x10 = frozenset({(4, 0), (3, 4), (4, 3), (3, 1), (5, 4), (4, 6), (5, 1), (0, 2), (0, 5), (2, 2), (1, 0), (1, 6), (2, 5), (1, 3), (6, 2), (6, 5), (4, 2), (3, 0), (4, 5), (3, 3), (5, 0), (5, 6), (3, 6), (5, 3...
+
+Available DSL functions:
+  matcher(function, target)  --  construction of equality function
+  asindices(grid)  --  indices of all grid cells
+  halve(n)  --  scaling by one half
+  vfrontier(location)  --  vertical frontier
+  crop(grid, start, dims)  --  subgrid specified by start and dimension
+  compose(outer, inner)  --  function composition
+  cellwise(a, b, fallback)  --  cellwise match of two grids
+  color(obj)  --  color of object
+  insert(value, container)  --  insert item into container
+  repeat(item, num)  --  repetition of item within vector
+  rot180(grid)  --  half rotation
+  leastcommon(container)  --  least common item
+  hmirror(piece)  --  mirroring along horizontal
+  fill(grid, value, patch)  --  fill value at indices
+  width(piece)  --  width of grid or patch
+  manhattan(a, b)  --  closest manhattan distance between two patches
+  sfilter(container, condition)  --  keep elements in container that satisfy condition
+
+Write the next DSL call:
+  Step 13 | x11 = sfilter(x10, matcher(color, x2))
+    exec: Execution error: TypeError: 'int' object is not subscriptable
+    --- feedback obs (step 13) ---
+ERROR executing: x11 = sfilter(x10, matcher(color, x2))
+Error: Execution error: TypeError: 'int' object is not subscriptable
+Please try again with a valid DSL call.
+
+=== CURRENT VARIABLES ===
+  I = <7x7 grid>
+    [0, 0, 3, 0, 0, 0, 7]
+    [8, 1, 0, 8, 0, 0, 0]
+    [0, 0, 3, 0, 8, 0, 3]
+    [0, 7, 0, 1, 0, 7, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [1, 0, 8, 6, 0, 0, 0]
+    [0, 8, 0, 6, 0, 1, 0]
+  x1 = 7
+  x2 = 3
+  x3 = <7x1 grid>
+    [0]
+    [8]
+    [0]
+    [1]
+    [0]
+    [6]
+    [6]
+  x4 = (0, 0, 0, 0, 0, 0, 0)
+  x5 = <7x7 grid>
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+  x6 = frozenset({(4, 0), (0, 0), (2, 0), (3, 0), (5, 0), (6, 0), (1, 0)})
+  x7 = frozenset({(4, 3), (17, 3), (28, 3), (8, 3), (19, 3), (10, 3), (1, 3), (21, 3), (12, 3), (23, 3), (3, 3), (14, 3), (5, 3), (27, 3), (25, 3), (16, 3), (7, 3), (18, 3), (29, 3), (20, 3), (22, 3), (9, 3)...
+  x8 = frozenset({(4, 0), (3, 4), (4, 3), (3, 1), (5, 4), (4, 6), (5, 1), (0, 2), (0, 5), (2, 2), (1, 0), (1, 6), (2, 5), (1, 3), (6, 2), (6, 5), (4, 2), (3, 0), (4, 5), (3, 3), (5, 0), (5, 6), (3, 6), (5, 3...
+  x9 = frozenset()
+  x10 = frozenset({(4, 0), (3, 4), (4, 3), (3, 1), (5, 4), (4, 6), (5, 1), (0, 2), (0, 5), (2, 2), (1, 0), (1, 6), (2, 5), (1, 3), (6, 2), (6, 5), (4, 2), (3, 0), (4, 5), (3, 3), (5, 0), (5, 6), (3, 6), (5, 3...
+
+Available DSL functions:
+  matcher(function, target)  --  construction of equality function
+  asindices(grid)  --  indices of all grid cells
+  halve(n)  --  scaling by one half
+  vfrontier(location)  --  vertical frontier
+  crop(grid, start, dims)  --  subgrid specified by start and dimension
+  compose(outer, inner)  --  function composition
+  cellwise(a, b, fallback)  --  cellwise match of two grids
+  color(obj)  --  color of object
+  insert(value, container)  --  insert item into container
+  repeat(item, num)  --  repetition of item within vector
+  rot180(grid)  --  half rotation
+  leastcommon(container)  --  least common item
+  hmirror(piece)  --  mirroring along horizontal
+  fill(grid, value, patch)  --  fill value at indices
+  width(piece)  --  width of grid or patch
+  manhattan(a, b)  --  closest manhattan distance between two patches
+  sfilter(container, condition)  --  keep elements in container that satisfy condition
+
+Write the next DSL call:
+  Step 14 | x11 = cellwise(x5, x3, ZERO)
+    exec: Execution error: IndexError: tuple index out of range
+    --- feedback obs (step 14) ---
+ERROR executing: x11 = cellwise(x5, x3, ZERO)
+Error: Execution error: IndexError: tuple index out of range
+Please try again with a valid DSL call.
+
+=== CURRENT VARIABLES ===
+  I = <7x7 grid>
+    [0, 0, 3, 0, 0, 0, 7]
+    [8, 1, 0, 8, 0, 0, 0]
+    [0, 0, 3, 0, 8, 0, 3]
+    [0, 7, 0, 1, 0, 7, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [1, 0, 8, 6, 0, 0, 0]
+    [0, 8, 0, 6, 0, 1, 0]
+  x1 = 7
+  x2 = 3
+  x3 = <7x1 grid>
+    [0]
+    [8]
+    [0]
+    [1]
+    [0]
+    [6]
+    [6]
+  x4 = (0, 0, 0, 0, 0, 0, 0)
+  x5 = <7x7 grid>
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+  x6 = frozenset({(4, 0), (0, 0), (2, 0), (3, 0), (5, 0), (6, 0), (1, 0)})
+  x7 = frozenset({(4, 3), (17, 3), (28, 3), (8, 3), (19, 3), (10, 3), (1, 3), (21, 3), (12, 3), (23, 3), (3, 3), (14, 3), (5, 3), (27, 3), (25, 3), (16, 3), (7, 3), (18, 3), (29, 3), (20, 3), (22, 3), (9, 3)...
+  x8 = frozenset({(4, 0), (3, 4), (4, 3), (3, 1), (5, 4), (4, 6), (5, 1), (0, 2), (0, 5), (2, 2), (1, 0), (1, 6), (2, 5), (1, 3), (6, 2), (6, 5), (4, 2), (3, 0), (4, 5), (3, 3), (5, 0), (5, 6), (3, 6), (5, 3...
+  x9 = frozenset()
+  x10 = frozenset({(4, 0), (3, 4), (4, 3), (3, 1), (5, 4), (4, 6), (5, 1), (0, 2), (0, 5), (2, 2), (1, 0), (1, 6), (2, 5), (1, 3), (6, 2), (6, 5), (4, 2), (3, 0), (4, 5), (3, 3), (5, 0), (5, 6), (3, 6), (5, 3...
+
+Available DSL functions:
+  matcher(function, target)  --  construction of equality function
+  asindices(grid)  --  indices of all grid cells
+  halve(n)  --  scaling by one half
+  vfrontier(location)  --  vertical frontier
+  crop(grid, start, dims)  --  subgrid specified by start and dimension
+  compose(outer, inner)  --  function composition
+  cellwise(a, b, fallback)  --  cellwise match of two grids
+  color(obj)  --  color of object
+  insert(value, container)  --  insert item into container
+  repeat(item, num)  --  repetition of item within vector
+  rot180(grid)  --  half rotation
+  leastcommon(container)  --  least common item
+  hmirror(piece)  --  mirroring along horizontal
+  fill(grid, value, patch)  --  fill value at indices
+  width(piece)  --  width of grid or patch
+  manhattan(a, b)  --  closest manhattan distance between two patches
+  sfilter(container, condition)  --  keep elements in container that satisfy condition
+
+Write the next DSL call:
+  Step 15 | x11 = fill(x5, 8, x10)
+    exec: OK: x11 assigned
+    --- feedback obs (step 15) ---
+Executed: x11 = fill(x5, 8, x10)
+Result: OK: x11 assigned
+
+=== CURRENT VARIABLES ===
+  I = <7x7 grid>
+    [0, 0, 3, 0, 0, 0, 7]
+    [8, 1, 0, 8, 0, 0, 0]
+    [0, 0, 3, 0, 8, 0, 3]
+    [0, 7, 0, 1, 0, 7, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [1, 0, 8, 6, 0, 0, 0]
+    [0, 8, 0, 6, 0, 1, 0]
+  x1 = 7
+  x2 = 3
+  x3 = <7x1 grid>
+    [0]
+    [8]
+    [0]
+    [1]
+    [0]
+    [6]
+    [6]
+  x4 = (0, 0, 0, 0, 0, 0, 0)
+  x5 = <7x7 grid>
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+  x6 = frozenset({(4, 0), (0, 0), (2, 0), (3, 0), (5, 0), (6, 0), (1, 0)})
+  x7 = frozenset({(4, 3), (17, 3), (28, 3), (8, 3), (19, 3), (10, 3), (1, 3), (21, 3), (12, 3), (23, 3), (3, 3), (14, 3), (5, 3), (27, 3), (25, 3), (16, 3), (7, 3), (18, 3), (29, 3), (20, 3), (22, 3), (9, 3)...
+  x8 = frozenset({(4, 0), (3, 4), (4, 3), (3, 1), (5, 4), (4, 6), (5, 1), (0, 2), (0, 5), (2, 2), (1, 0), (1, 6), (2, 5), (1, 3), (6, 2), (6, 5), (4, 2), (3, 0), (4, 5), (3, 3), (5, 0), (5, 6), (3, 6), (5, 3...
+  x9 = frozenset()
+  x10 = frozenset({(4, 0), (3, 4), (4, 3), (3, 1), (5, 4), (4, 6), (5, 1), (0, 2), (0, 5), (2, 2), (1, 0), (1, 6), (2, 5), (1, 3), (6, 2), (6, 5), (4, 2), (3, 0), (4, 5), (3, 3), (5, 0), (5, 6), (3, 6), (5, 3...
+  x11 = <7x7 grid>
+    [8, 8, 8, 8, 8, 8, 8]
+    [8, 8, 8, 8, 8, 8, 8]
+    [8, 8, 8, 8, 8, 8, 8]
+    [8, 8, 8, 8, 8, 8, 8]
+    [8, 8, 8, 8, 8, 8, 8]
+    [8, 8, 8, 8, 8, 8, 8]
+    [8, 8, 8, 8, 8, 8, 8]
+
+Available DSL functions:
+  matcher(function, target)  --  construction of equality function
+  asindices(grid)  --  indices of all grid cells
+  halve(n)  --  scaling by one half
+  vfrontier(location)  --  vertical frontier
+  crop(grid, start, dims)  --  subgrid specified by start and dimension
+  compose(outer, inner)  --  function composition
+  cellwise(a, b, fallback)  --  cellwise match of two grids
+  color(obj)  --  color of object
+  insert(value, container)  --  insert item into container
+  repeat(item, num)  --  repetition of item within vector
+  rot180(grid)  --  half rotation
+  leastcommon(container)  --  least common item
+  hmirror(piece)  --  mirroring along horizontal
+  fill(grid, value, patch)  --  fill value at indices
+  width(piece)  --  width of grid or patch
+  manhattan(a, b)  --  closest manhattan distance between two patches
+  sfilter(container, condition)  --  keep elements in container that satisfy condition
+
+Write the next DSL call:
+  Step 16 | x12 = fill(x5, 0, x10)
+    exec: OK: x12 assigned
+    --- feedback obs (step 16) ---
+Executed: x12 = fill(x5, 0, x10)
+Result: OK: x12 assigned
+
+=== CURRENT VARIABLES ===
+  I = <7x7 grid>
+    [0, 0, 3, 0, 0, 0, 7]
+    [8, 1, 0, 8, 0, 0, 0]
+    [0, 0, 3, 0, 8, 0, 3]
+    [0, 7, 0, 1, 0, 7, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [1, 0, 8, 6, 0, 0, 0]
+    [0, 8, 0, 6, 0, 1, 0]
+  x1 = 7
+  x2 = 3
+  x3 = <7x1 grid>
+    [0]
+    [8]
+    [0]
+    [1]
+    [0]
+    [6]
+    [6]
+  x4 = (0, 0, 0, 0, 0, 0, 0)
+  x5 = <7x7 grid>
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+  x6 = frozenset({(4, 0), (0, 0), (2, 0), (3, 0), (5, 0), (6, 0), (1, 0)})
+  x7 = frozenset({(4, 3), (17, 3), (28, 3), (8, 3), (19, 3), (10, 3), (1, 3), (21, 3), (12, 3), (23, 3), (3, 3), (14, 3), (5, 3), (27, 3), (25, 3), (16, 3), (7, 3), (18, 3), (29, 3), (20, 3), (22, 3), (9, 3)...
+  x8 = frozenset({(4, 0), (3, 4), (4, 3), (3, 1), (5, 4), (4, 6), (5, 1), (0, 2), (0, 5), (2, 2), (1, 0), (1, 6), (2, 5), (1, 3), (6, 2), (6, 5), (4, 2), (3, 0), (4, 5), (3, 3), (5, 0), (5, 6), (3, 6), (5, 3...
+  x9 = frozenset()
+  x10 = frozenset({(4, 0), (3, 4), (4, 3), (3, 1), (5, 4), (4, 6), (5, 1), (0, 2), (0, 5), (2, 2), (1, 0), (1, 6), (2, 5), (1, 3), (6, 2), (6, 5), (4, 2), (3, 0), (4, 5), (3, 3), (5, 0), (5, 6), (3, 6), (5, 3...
+  x11 = <7x7 grid>
+    [8, 8, 8, 8, 8, 8, 8]
+    [8, 8, 8, 8, 8, 8, 8]
+    [8, 8, 8, 8, 8, 8, 8]
+    [8, 8, 8, 8, 8, 8, 8]
+    [8, 8, 8, 8, 8, 8, 8]
+    [8, 8, 8, 8, 8, 8, 8]
+    [8, 8, 8, 8, 8, 8, 8]
+  x12 = <7x7 grid>
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+
+Available DSL functions:
+  matcher(function, target)  --  construction of equality function
+  asindices(grid)  --  indices of all grid cells
+  halve(n)  --  scaling by one half
+  vfrontier(location)  --  vertical frontier
+  crop(grid, start, dims)  --  subgrid specified by start and dimension
+  compose(outer, inner)  --  function composition
+  cellwise(a, b, fallback)  --  cellwise match of two grids
+  color(obj)  --  color of object
+  insert(value, container)  --  insert item into container
+  repeat(item, num)  --  repetition of item within vector
+  rot180(grid)  --  half rotation
+  leastcommon(container)  --  least common item
+  hmirror(piece)  --  mirroring along horizontal
+  fill(grid, value, patch)  --  fill value at indices
+  width(piece)  --  width of grid or patch
+  manhattan(a, b)  --  closest manhattan distance between two patches
+  sfilter(container, condition)  --  keep elements in container that satisfy condition
+
+Write the next DSL call:
+  Step 17 | x13 = sfilter(x8, matcher(compose(color, vfrontier), x2))
+    exec: OK: x13 assigned
+    --- feedback obs (step 17) ---
+Executed: x13 = sfilter(x8, matcher(compose(color, vfrontier), x2))
+Result: OK: x13 assigned
+
+=== CURRENT VARIABLES ===
+  I = <7x7 grid>
+    [0, 0, 3, 0, 0, 0, 7]
+    [8, 1, 0, 8, 0, 0, 0]
+    [0, 0, 3, 0, 8, 0, 3]
+    [0, 7, 0, 1, 0, 7, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [1, 0, 8, 6, 0, 0, 0]
+    [0, 8, 0, 6, 0, 1, 0]
+  x1 = 7
+  x2 = 3
+  x3 = <7x1 grid>
+    [0]
+    [8]
+    [0]
+    [1]
+    [0]
+    [6]
+    [6]
+  x4 = (0, 0, 0, 0, 0, 0, 0)
+  x5 = <7x7 grid>
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+  x6 = frozenset({(4, 0), (0, 0), (2, 0), (3, 0), (5, 0), (6, 0), (1, 0)})
+  x7 = frozenset({(4, 3), (17, 3), (28, 3), (8, 3), (19, 3), (10, 3), (1, 3), (21, 3), (12, 3), (23, 3), (3, 3), (14, 3), (5, 3), (27, 3), (25, 3), (16, 3), (7, 3), (18, 3), (29, 3), (20, 3), (22, 3), (9, 3)...
+  x8 = frozenset({(4, 0), (3, 4), (4, 3), (3, 1), (5, 4), (4, 6), (5, 1), (0, 2), (0, 5), (2, 2), (1, 0), (1, 6), (2, 5), (1, 3), (6, 2), (6, 5), (4, 2), (3, 0), (4, 5), (3, 3), (5, 0), (5, 6), (3, 6), (5, 3...
+  x9 = frozenset()
+  x10 = frozenset({(4, 0), (3, 4), (4, 3), (3, 1), (5, 4), (4, 6), (5, 1), (0, 2), (0, 5), (2, 2), (1, 0), (1, 6), (2, 5), (1, 3), (6, 2), (6, 5), (4, 2), (3, 0), (4, 5), (3, 3), (5, 0), (5, 6), (3, 6), (5, 3...
+  x11 = <7x7 grid>
+    [8, 8, 8, 8, 8, 8, 8]
+    [8, 8, 8, 8, 8, 8, 8]
+    [8, 8, 8, 8, 8, 8, 8]
+    [8, 8, 8, 8, 8, 8, 8]
+    [8, 8, 8, 8, 8, 8, 8]
+    [8, 8, 8, 8, 8, 8, 8]
+    [8, 8, 8, 8, 8, 8, 8]
+  x12 = <7x7 grid>
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+  x13 = frozenset()
+
+Available DSL functions:
+  matcher(function, target)  --  construction of equality function
+  asindices(grid)  --  indices of all grid cells
+  halve(n)  --  scaling by one half
+  vfrontier(location)  --  vertical frontier
+  crop(grid, start, dims)  --  subgrid specified by start and dimension
+  compose(outer, inner)  --  function composition
+  cellwise(a, b, fallback)  --  cellwise match of two grids
+  color(obj)  --  color of object
+  insert(value, container)  --  insert item into container
+  repeat(item, num)  --  repetition of item within vector
+  rot180(grid)  --  half rotation
+  leastcommon(container)  --  least common item
+  hmirror(piece)  --  mirroring along horizontal
+  fill(grid, value, patch)  --  fill value at indices
+  width(piece)  --  width of grid or patch
+  manhattan(a, b)  --  closest manhattan distance between two patches
+  sfilter(container, condition)  --  keep elements in container that satisfy condition
+
+Write the next DSL call:
+  Step 18 | x14 = sfilter(x8, matcher(compose(width, vfrontier), x2))
+    exec: OK: x14 assigned
+    --- feedback obs (step 18) ---
+Executed: x14 = sfilter(x8, matcher(compose(width, vfrontier), x2))
+Result: OK: x14 assigned
+
+=== CURRENT VARIABLES ===
+  I = <7x7 grid>
+    [0, 0, 3, 0, 0, 0, 7]
+    [8, 1, 0, 8, 0, 0, 0]
+    [0, 0, 3, 0, 8, 0, 3]
+    [0, 7, 0, 1, 0, 7, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [1, 0, 8, 6, 0, 0, 0]
+    [0, 8, 0, 6, 0, 1, 0]
+  x1 = 7
+  x2 = 3
+  x3 = <7x1 grid>
+    [0]
+    [8]
+    [0]
+    [1]
+    [0]
+    [6]
+    [6]
+  x4 = (0, 0, 0, 0, 0, 0, 0)
+  x5 = <7x7 grid>
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+  x6 = frozenset({(4, 0), (0, 0), (2, 0), (3, 0), (5, 0), (6, 0), (1, 0)})
+  x7 = frozenset({(4, 3), (17, 3), (28, 3), (8, 3), (19, 3), (10, 3), (1, 3), (21, 3), (12, 3), (23, 3), (3, 3), (14, 3), (5, 3), (27, 3), (25, 3), (16, 3), (7, 3), (18, 3), (29, 3), (20, 3), (22, 3), (9, 3)...
+  x8 = frozenset({(4, 0), (3, 4), (4, 3), (3, 1), (5, 4), (4, 6), (5, 1), (0, 2), (0, 5), (2, 2), (1, 0), (1, 6), (2, 5), (1, 3), (6, 2), (6, 5), (4, 2), (3, 0), (4, 5), (3, 3), (5, 0), (5, 6), (3, 6), (5, 3...
+  x9 = frozenset()
+  x10 = frozenset({(4, 0), (3, 4), (4, 3), (3, 1), (5, 4), (4, 6), (5, 1), (0, 2), (0, 5), (2, 2), (1, 0), (1, 6), (2, 5), (1, 3), (6, 2), (6, 5), (4, 2), (3, 0), (4, 5), (3, 3), (5, 0), (5, 6), (3, 6), (5, 3...
+  x11 = <7x7 grid>
+    [8, 8, 8, 8, 8, 8, 8]
+    [8, 8, 8, 8, 8, 8, 8]
+    [8, 8, 8, 8, 8, 8, 8]
+    [8, 8, 8, 8, 8, 8, 8]
+    [8, 8, 8, 8, 8, 8, 8]
+    [8, 8, 8, 8, 8, 8, 8]
+    [8, 8, 8, 8, 8, 8, 8]
+  x12 = <7x7 grid>
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+  x13 = frozenset()
+  x14 = frozenset()
+
+Available DSL functions:
+  matcher(function, target)  --  construction of equality function
+  asindices(grid)  --  indices of all grid cells
+  halve(n)  --  scaling by one half
+  vfrontier(location)  --  vertical frontier
+  crop(grid, start, dims)  --  subgrid specified by start and dimension
+  compose(outer, inner)  --  function composition
+  cellwise(a, b, fallback)  --  cellwise match of two grids
+  color(obj)  --  color of object
+  insert(value, container)  --  insert item into container
+  repeat(item, num)  --  repetition of item within vector
+  rot180(grid)  --  half rotation
+  leastcommon(container)  --  least common item
+  hmirror(piece)  --  mirroring along horizontal
+  fill(grid, value, patch)  --  fill value at indices
+  width(piece)  --  width of grid or patch
+  manhattan(a, b)  --  closest manhattan distance between two patches
+  sfilter(container, condition)  --  keep elements in container that satisfy condition
+
+Write the next DSL call:
+  Step 19 | x15 = fill(x5, 0, x6)
+    exec: OK: x15 assigned
+    --- feedback obs (step 19) ---
+Executed: x15 = fill(x5, 0, x6)
+Result: OK: x15 assigned
+
+=== CURRENT VARIABLES ===
+  I = <7x7 grid>
+    [0, 0, 3, 0, 0, 0, 7]
+    [8, 1, 0, 8, 0, 0, 0]
+    [0, 0, 3, 0, 8, 0, 3]
+    [0, 7, 0, 1, 0, 7, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [1, 0, 8, 6, 0, 0, 0]
+    [0, 8, 0, 6, 0, 1, 0]
+  x1 = 7
+  x2 = 3
+  x3 = <7x1 grid>
+    [0]
+    [8]
+    [0]
+    [1]
+    [0]
+    [6]
+    [6]
+  x4 = (0, 0, 0, 0, 0, 0, 0)
+  x5 = <7x7 grid>
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+  x6 = frozenset({(4, 0), (0, 0), (2, 0), (3, 0), (5, 0), (6, 0), (1, 0)})
+  x7 = frozenset({(4, 3), (17, 3), (28, 3), (8, 3), (19, 3), (10, 3), (1, 3), (21, 3), (12, 3), (23, 3), (3, 3), (14, 3), (5, 3), (27, 3), (25, 3), (16, 3), (7, 3), (18, 3), (29, 3), (20, 3), (22, 3), (9, 3)...
+  x8 = frozenset({(4, 0), (3, 4), (4, 3), (3, 1), (5, 4), (4, 6), (5, 1), (0, 2), (0, 5), (2, 2), (1, 0), (1, 6), (2, 5), (1, 3), (6, 2), (6, 5), (4, 2), (3, 0), (4, 5), (3, 3), (5, 0), (5, 6), (3, 6), (5, 3...
+  x9 = frozenset()
+  x10 = frozenset({(4, 0), (3, 4), (4, 3), (3, 1), (5, 4), (4, 6), (5, 1), (0, 2), (0, 5), (2, 2), (1, 0), (1, 6), (2, 5), (1, 3), (6, 2), (6, 5), (4, 2), (3, 0), (4, 5), (3, 3), (5, 0), (5, 6), (3, 6), (5, 3...
+  x11 = <7x7 grid>
+    [8, 8, 8, 8, 8, 8, 8]
+    [8, 8, 8, 8, 8, 8, 8]
+    [8, 8, 8, 8, 8, 8, 8]
+    [8, 8, 8, 8, 8, 8, 8]
+    [8, 8, 8, 8, 8, 8, 8]
+    [8, 8, 8, 8, 8, 8, 8]
+    [8, 8, 8, 8, 8, 8, 8]
+  x12 = <7x7 grid>
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+  x13 = frozenset()
+  x14 = frozenset()
+  x15 = <7x7 grid>
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+
+Available DSL functions:
+  matcher(function, target)  --  construction of equality function
+  asindices(grid)  --  indices of all grid cells
+  halve(n)  --  scaling by one half
+  vfrontier(location)  --  vertical frontier
+  crop(grid, start, dims)  --  subgrid specified by start and dimension
+  compose(outer, inner)  --  function composition
+  cellwise(a, b, fallback)  --  cellwise match of two grids
+  color(obj)  --  color of object
+  insert(value, container)  --  insert item into container
+  repeat(item, num)  --  repetition of item within vector
+  rot180(grid)  --  half rotation
+  leastcommon(container)  --  least common item
+  hmirror(piece)  --  mirroring along horizontal
+  fill(grid, value, patch)  --  fill value at indices
+  width(piece)  --  width of grid or patch
+  manhattan(a, b)  --  closest manhattan distance between two patches
+  sfilter(container, condition)  --  keep elements in container that satisfy condition
+
+Write the next DSL call:
+  Step 20 | x16 = fill(x15, 8, x6)
+    exec: OK: x16 assigned
+    --- feedback obs (step 20) ---
+Executed: x16 = fill(x15, 8, x6)
+Result: OK: x16 assigned
+
+=== CURRENT VARIABLES ===
+  I = <7x7 grid>
+    [0, 0, 3, 0, 0, 0, 7]
+    [8, 1, 0, 8, 0, 0, 0]
+    [0, 0, 3, 0, 8, 0, 3]
+    [0, 7, 0, 1, 0, 7, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [1, 0, 8, 6, 0, 0, 0]
+    [0, 8, 0, 6, 0, 1, 0]
+  x1 = 7
+  x2 = 3
+  x3 = <7x1 grid>
+    [0]
+    [8]
+    [0]
+    [1]
+    [0]
+    [6]
+    [6]
+  x4 = (0, 0, 0, 0, 0, 0, 0)
+  x5 = <7x7 grid>
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+  x6 = frozenset({(4, 0), (0, 0), (2, 0), (3, 0), (5, 0), (6, 0), (1, 0)})
+  x7 = frozenset({(4, 3), (17, 3), (28, 3), (8, 3), (19, 3), (10, 3), (1, 3), (21, 3), (12, 3), (23, 3), (3, 3), (14, 3), (5, 3), (27, 3), (25, 3), (16, 3), (7, 3), (18, 3), (29, 3), (20, 3), (22, 3), (9, 3)...
+  x8 = frozenset({(4, 0), (3, 4), (4, 3), (3, 1), (5, 4), (4, 6), (5, 1), (0, 2), (0, 5), (2, 2), (1, 0), (1, 6), (2, 5), (1, 3), (6, 2), (6, 5), (4, 2), (3, 0), (4, 5), (3, 3), (5, 0), (5, 6), (3, 6), (5, 3...
+  x9 = frozenset()
+  x10 = frozenset({(4, 0), (3, 4), (4, 3), (3, 1), (5, 4), (4, 6), (5, 1), (0, 2), (0, 5), (2, 2), (1, 0), (1, 6), (2, 5), (1, 3), (6, 2), (6, 5), (4, 2), (3, 0), (4, 5), (3, 3), (5, 0), (5, 6), (3, 6), (5, 3...
+  x11 = <7x7 grid>
+    [8, 8, 8, 8, 8, 8, 8]
+    [8, 8, 8, 8, 8, 8, 8]
+    [8, 8, 8, 8, 8, 8, 8]
+    [8, 8, 8, 8, 8, 8, 8]
+    [8, 8, 8, 8, 8, 8, 8]
+    [8, 8, 8, 8, 8, 8, 8]
+    [8, 8, 8, 8, 8, 8, 8]
+  x12 = <7x7 grid>
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+  x13 = frozenset()
+  x14 = frozenset()
+  x15 = <7x7 grid>
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0, 0, 0]
+  x16 = <7x7 grid>
+    [8, 0, 0, 0, 0, 0, 0]
+    [8, 0, 0, 0, 0, 0, 0]
+    [8, 0, 0, 0, 0, 0, 0]
+    [8, 0, 0, 0, 0, 0, 0]
+    [8, 0, 0, 0, 0, 0, 0]
+    [8, 0, 0, 0, 0, 0, 0]
+    [8, 0, 0, 0, 0, 0, 0]
+
+Available DSL functions:
+  matcher(function, target)  --  construction of equality function
+  asindices(grid)  --  indices of all grid cells
+  halve(n)  --  scaling by one half
+  vfrontier(location)  --  vertical frontier
+  crop(grid, start, dims)  --  subgrid specified by start and dimension
+  compose(outer, inner)  --  function composition
+  cellwise(a, b, fallback)  --  cellwise match of two grids
+  color(obj)  --  color of object
+  insert(value, container)  --  insert item into container
+  repeat(item, num)  --  repetition of item within vector
+  rot180(grid)  --  half rotation
+  leastcommon(container)  --  least common item
+  hmirror(piece)  --  mirroring along horizontal
+  fill(grid, value, patch)  --  fill value at indices
+  width(piece)  --  width of grid or patch
+  manhattan(a, b)  --  closest manhattan distance between two patches
+  sfilter(container, condition)  --  keep elements in container that satisfy condition
+
+Write the next DSL call:
+  >>> NOT solved after 20 steps. Accuracy: 0/0
+
+============================================================
+RESULT: FAILED
+Final match: 0/0 cells
+Steps used: 20/20
+GT steps: 7

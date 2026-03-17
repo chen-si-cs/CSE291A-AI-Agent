@@ -1,0 +1,155 @@
+
+============================================================
+PUZZLE: 3c9b0459  |  GT steps: 1  |  GT DSLs: 1  |  Distractors: 10  |  Total DSLs shown: 11
+============================================================
+
+GT DSL functions (1):
+  [GT] rot180(grid)  --  half rotation
+
+Distractor DSL functions (10):
+  [DISTRACTOR] double(n)  --  scaling by two
+  [DISTRACTOR] fork(outer, a, b)  --  creates a wrapper function
+  [DISTRACTOR] gravitate(source, destination)  --  direction to move source until adjacent to destination
+  [DISTRACTOR] hmatching(a, b)  --  whether there exists a row for which both patches have cells
+  [DISTRACTOR] insert(value, container)  --  insert item into container
+  [DISTRACTOR] maximum(container)  --  maximum
+  [DISTRACTOR] mpapply(function, a, b)  --  apply function on two vectors and merge
+  [DISTRACTOR] rot270(grid)  --  quarter anticlockwise rotation
+  [DISTRACTOR] size(container)  --  cardinality
+  [DISTRACTOR] toivec(i)  --  vector pointing vertically
+
+Display order shown to agent:
+  [GT] rot180
+  [DISTRACTOR] toivec
+  [DISTRACTOR] gravitate
+  [DISTRACTOR] double
+  [DISTRACTOR] size
+  [DISTRACTOR] maximum
+  [DISTRACTOR] fork
+  [DISTRACTOR] hmatching
+  [DISTRACTOR] mpapply
+  [DISTRACTOR] insert
+  [DISTRACTOR] rot270
+
+
+--- INITIAL OBSERVATION ---
+=== ARC-AGI PUZZLE ===
+TRAINING EXAMPLES:
+
+--- Train Pair 1 ---
+Input:
+  [2, 2, 1]
+  [2, 1, 2]
+  [2, 8, 1]
+Output:
+  [1, 8, 2]
+  [2, 1, 2]
+  [1, 2, 2]
+
+--- Train Pair 2 ---
+Input:
+  [9, 2, 4]
+  [2, 4, 4]
+  [2, 9, 2]
+Output:
+  [2, 9, 2]
+  [4, 4, 2]
+  [4, 2, 9]
+
+--- Train Pair 3 ---
+Input:
+  [8, 8, 8]
+  [5, 5, 8]
+  [8, 5, 5]
+Output:
+  [5, 5, 8]
+  [8, 5, 5]
+  [8, 8, 8]
+
+--- Train Pair 4 ---
+Input:
+  [3, 2, 9]
+  [9, 9, 9]
+  [2, 3, 3]
+Output:
+  [3, 3, 2]
+  [9, 9, 9]
+  [9, 2, 3]
+
+--- Test Input ---
+Input:
+  [6, 4, 4]
+  [6, 6, 4]
+  [4, 6, 7]
+
+Your goal: produce the correct output grid for this test input.
+
+=== AVAILABLE DSL FUNCTIONS ===
+  rot180(grid)  --  half rotation
+  toivec(i)  --  vector pointing vertically
+  gravitate(source, destination)  --  direction to move source until adjacent to destination
+  double(n)  --  scaling by two
+  size(container)  --  cardinality
+  maximum(container)  --  maximum
+  fork(outer, a, b)  --  creates a wrapper function
+  hmatching(a, b)  --  whether there exists a row for which both patches have cells
+  mpapply(function, a, b)  --  apply function on two vectors and merge
+  insert(value, container)  --  insert item into container
+  rot270(grid)  --  quarter anticlockwise rotation
+
+=== CURRENT VARIABLES ===
+  I = <test input grid shown above>
+
+Write the next DSL call:
+--- END INITIAL OBSERVATION ---
+
+
+--- PLANNING ROUND ---
+ Looking at the training pairs:
+
+**Train Pair 1:** The output appears to be the input rotated 180 degrees (upside down and reversed left-right).
+
+**Train Pair 2:** Same pattern - output is 180-degree rotation of input.
+
+**Train Pair 3:** Same pattern - output is 180-degree rotation of input.
+
+**Train Pair 4:** Same pattern - output is 180-degree rotation of input.
+
+Let me verify:
+- Pair 1: Input row 0 [2,2,1] becomes output row 2 [1,2,2] (reversed). Yes, 180° rotation.
+- Pair 2: Input row 0 [9,2,4] becomes output row 2 [4,2,9] (reversed). Yes, 180° rotation.
+- Pair 3: Input row 0 [8,8,8] becomes output row 2 [8,8,8] (same since all same values, but positionally correct). Yes.
+- Pair 4: Input row 0 [3,2,9] becomes output row 2 [9,2,3] (reversed). Yes.
+
+The transformation is simply a 180-degree rotation.
+
+The available DSL function `rot180(grid)` does exactly this.
+
+For the test input:
+```
+[6, 4, 4]
+[6, 6, 4]
+[4, 6, 7]
+```
+
+Applying rot180 should give:
+```
+[7, 6, 4]
+[4, 6, 6]
+[4, 4, 6]
+```
+
+My plan is simple: apply `rot180` to the input `I`.
+
+O = rot180(I)
+--- END PLANNING ---
+
+  Step  1 | O = rot180(I)
+    exec: OK: O assigned
+  >>> SOLVED at step 1! (9/9 cells)
+
+============================================================
+RESULT: SOLVED
+Final match: 9/9 cells
+Steps used: 1/20
+GT steps: 1
