@@ -6,6 +6,30 @@ The main branch is the template environment for the ARC simulator.
 
 Switch to branches `zejia` (for general LLM API agent tests) and `jiarui` (for ablations on LLM API agents).
 
+### Main Experiments
+Switch to branch `zejia` (general LLM API agent tests).
+
+Code location:
+- Minimal DSL (oracle) evaluation: llm_agent_eval_new/run_eval.py
+- Full DSL evaluation: scripts/evaluate_llm_agent.py
+- Agent logic: agents/llm_agent.py
+
+How to run (minimal DSL):
+
+```bash
+  export TRITONAI_API_KEY="your-key-here"
+  cd llm_agent_eval_new
+  python run_eval.py --model api-gpt-oss-120b --split all    # all 131 puzzles
+  python run_eval.py --model api-gpt-oss-120b --split test   # 27 test puzzles
+  only
+  python run_eval.py --model all                              # run all 5 models
+```
+
+Available models: api-gpt-oss-120b, api-mistral-small-3.2-2506, minimax.minimax-m2, moonshotai.kimi-k2.5, us.deepseek.r1-v1:0.
+
+Results are saved to llm_agent_eval_new/results/ (JSON) and per-puzzle logs to llm_agent_eval_new/logs/<model_name>/.
+
+
 ### Ablations (`jiarui` branch)
 
 The notebook `arc_agi_agent_distractor.ipynb` contains the ablation trial setups, including:
