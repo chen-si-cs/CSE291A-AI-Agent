@@ -83,7 +83,7 @@ ALL_MODELS = [
 
 # ── Config ────────────────────────────────────────────────────────
 API_URL = "https://tritonai-api.ucsd.edu/v1/chat/completions"
-API_KEY = 
+API_KEY = os.environ.get("TRITONAI_API_KEY", "")
 MAX_STEPS = 20
 SEED = 42
 DATA_DIR = os.path.join(SCRIPT_DIR, "data")
