@@ -1,4 +1,20 @@
-# CSE291A-AI-Agent
+# ARC-AGI DSL Exploration Simulator (Team 1 Project for CSE291)
+
+The `main` branch is the template environment for the ARC simulator.
+
+## Branch Guide
+
+### LLM API Agent
+Switch to branch `zejia` for general LLM API agent tests.  
+Switch to branch `jiarui` for ablations on LLM API agents.
+
+### SFT Agent
+Switch to branch `shuhao-SFT-modified`.
+
+### RL Agent
+Switch to branch `feiyang`.
+
+---
 
 # ARC-AGI DSL Exploration Simulator
 
